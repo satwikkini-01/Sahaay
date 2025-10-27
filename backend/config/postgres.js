@@ -1,13 +1,16 @@
 import pkg from "pg";
+import logger from "../utils/logger.js";
 const { Pool } = pkg;
 
 let _pool;
 
 export const createPoolIfNeeded = () => {
 	if (_pool) return _pool;
-	const connectionString = process.env.PG_URI ? String(process.env.PG_URI).trim() : undefined;
+	const connectionString = process.env.PG_URI
+		? String(process.env.PG_URI).trim()
+		: undefined;
 	if (!connectionString) {
-		throw new Error('PG_URI missing');
+		throw new Error("PG_URI missing");
 	}
 	_pool = new Pool({ connectionString });
 	return _pool;
@@ -22,10 +25,10 @@ export const getPool = () => {
 
 export const connectPostgres = async () => {
 	try {
-		console.log('Connecting to PostgreSQL...');
+		logger.info("Connecting to PostgreSQL...");
 		const pool = getPool();
 		await pool.connect();
-		console.log("PostgreSQL connected");
+		logger.info("PostgreSQL connected");
 
 		await pool.query(`CREATE TABLE IF NOT EXISTS metrics (
 			id SERIAL PRIMARY KEY,
@@ -53,12 +56,16 @@ export const connectPostgres = async () => {
 		);`);
 	} catch (err) {
 		const msg = err && err.message ? err.message : String(err);
-		if (msg.includes('client password must be a string')) {
-			console.error('PostgreSQL connection error: client password must be a string. Check your PG_URI format and ensure the password is a string.');
-		} else if (msg.includes('PG_URI missing')) {
-			console.error('PostgreSQL connection error: PG_URI missing. Set PG_URI in .env.');
+		if (msg.includes("client password must be a string")) {
+			logger.error(
+				"PostgreSQL connection error: client password must be a string. Check your PG_URI format and ensure the password is a string."
+			);
+		} else if (msg.includes("PG_URI missing")) {
+			logger.error(
+				"PostgreSQL connection error: PG_URI missing. Set PG_URI in .env."
+			);
 		} else {
-			console.error('PostgreSQL connection error:', msg);
+			logger.error("PostgreSQL connection error:", msg);
 		}
 		process.exit(1);
 	}

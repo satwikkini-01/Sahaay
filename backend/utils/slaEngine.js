@@ -1,5 +1,6 @@
 import Complaint from "../models/Complaint.js";
 import getPool from "../config/postgres.js";
+import logger from "./logger.js";
 
 export const checkSLA = async () => {
 	try {
@@ -45,7 +46,7 @@ export const checkSLA = async () => {
 			}
 		}
 	} catch (err) {
-		console.error("checkSLA error:", err);
+		logger.error("checkSLA error:", err);
 		throw err;
 	}
 };
