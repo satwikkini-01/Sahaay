@@ -2,15 +2,18 @@ import Complaint from "../models/Complaint.js";
 import getPool from "../config/postgres.js";
 import { checkSLA } from "../utils/slaEngine.js";
 import { analyzePriority } from "../utils/priorityEngine.js";
+import {
+	findSimilarComplaints,
+	updateComplaintWithGroup,
+} from "../utils/complaintClustering.js";
 import logger from "../utils/logger.js";
 
 export const createComplaint = async (req, res) => {
 	try {
-		logger.info("Received complaint creation request:", req.body);
-
 		// If frontend omitted citizenId, use authenticated user id (if available)
 		const {
 			category,
+			subcategory,
 			citizenId: bodyCitizenId,
 			title,
 			description,
@@ -21,34 +24,43 @@ export const createComplaint = async (req, res) => {
 
 		// Validate required fields
 		if (!category || !citizenId || !title || !description) {
-			logger.warn("Validation failed - Missing required fields:", {
-				category,
-				citizenId,
-				title,
-				description,
-			});
 			return res.status(400).json({
 				error: "category, citizenId, title, and description are required",
-				received: { category, citizenId, title, description },
+			});
+		}
+
+		// Validate location is provided and has required fields
+		if (!location) {
+			return res.status(400).json({
+				error: "Location is required",
+			});
+		}
+
+		if (
+			!location.coordinates ||
+			location.coordinates.length !== 2 ||
+			!location.address ||
+			!location.zipcode ||
+			!location.city
+		) {
+			return res.status(400).json({
+				error: "Location must include coordinates, address, zipcode, and city",
 			});
 		}
 
 		// Find responsible department
 		const pool = getPool();
-		logger.info("Searching for department handling category:", category);
 		const result = await pool.query(
 			"SELECT * FROM departments WHERE $1 = ANY(category_handled)",
 			[category]
 		);
 
 		if (result.rows.length === 0) {
-			logger.warn("No department found for category:", category);
 			return res.status(404).json({
 				error: "No department found for this category",
 				category: category,
 			});
 		}
-		logger.info("Found department:", result.rows[0]);
 
 		const dept = result.rows[0];
 
@@ -57,29 +69,25 @@ export const createComplaint = async (req, res) => {
 			title,
 			description,
 			category,
+			subcategory,
 			citizen: citizenId,
 			department: { pgDeptId: dept.id, name: dept.name },
-		};
-
-		// Add location if provided
-		if (location) {
-			complaintData.location = {
+			location: {
 				type: "Point",
 				coordinates: location.coordinates,
 				address: location.address,
 				landmark: location.landmark,
 				zipcode: location.zipcode,
-			};
-		}
+				city: location.city,
+			},
+		};
 
 		// Analyze priority and calculate SLA
-		logger.info("Analyzing complaint priority...");
 		const priorityAnalysis = await analyzePriority({
 			title,
 			description,
 			location: complaintData.location,
 		});
-		logger.info("Priority analysis completed:", priorityAnalysis);
 
 		// Add priority analysis results
 		complaintData.priority = priorityAnalysis.priority;
@@ -88,10 +96,6 @@ export const createComplaint = async (req, res) => {
 			priorityScore: priorityAnalysis.meta.priorityScore,
 			priorityFactors: priorityAnalysis.meta.factors,
 		};
-		logger.debug(
-			"Updated complaint data with priority information:",
-			complaintData
-		);
 
 		// Calculate SLA deadline
 		const slaDeadline = new Date();
@@ -99,10 +103,24 @@ export const createComplaint = async (req, res) => {
 		complaintData.slaDeadline = slaDeadline;
 
 		// Create and save complaint
-		logger.info("Creating new complaint in database...");
 		const complaint = new Complaint(complaintData);
 		await complaint.save();
-		logger.info("Complaint saved successfully:", complaint._id);
+
+		// Find similar complaints and group them
+		const similarGroup = await findSimilarComplaints(complaint);
+
+		if (similarGroup) {
+			// Update all complaints in the group
+			for (const similarComplaint of similarGroup.complaints) {
+				await updateComplaintWithGroup(similarComplaint, similarGroup);
+			}
+		} else {
+			// Update this complaint with its own group
+			await updateComplaintWithGroup(complaint, {
+				id: complaint._id.toString(),
+				complaints: [complaint],
+			});
+		}
 
 		// Return detailed response
 		const response = {
@@ -114,18 +132,18 @@ export const createComplaint = async (req, res) => {
 				slaDeadline: slaDeadline,
 				factors: priorityAnalysis.meta.factors,
 			},
+			groupInfo: similarGroup
+				? {
+						groupId: similarGroup.id,
+						groupSize: similarGroup.complaints.length,
+						isPartOfExistingGroup: similarGroup.complaints.length > 1,
+				  }
+				: null,
 		};
-		logger.info("Sending success response for complaint:", complaint._id);
 		res.status(201).json(response);
 	} catch (err) {
-		logger.error("Complaint creation error:", {
-			error: err,
-			stack: err.stack,
-			requestBody: req.body,
-		});
 		res.status(400).json({
 			error: err.message,
-			details: process.env.NODE_ENV === "development" ? err.stack : undefined,
 		});
 	}
 };
@@ -141,8 +159,13 @@ export const getComplaints = async (req, res) => {
 
 export const getUserComplaints = async (req, res) => {
 	try {
+		// Fix: Extract citizenId correctly from the JWT token payload
 		const citizenId = req.user && req.user.id ? req.user.id : req.user;
 		logger.info("Fetching complaints for citizen:", citizenId);
+
+		// Add debugging
+		logger.info("req.user object:", JSON.stringify(req.user, null, 2));
+
 		const complaints = await Complaint.find({ citizen: citizenId })
 			.sort({ createdAt: -1 }) // Most recent first
 			.populate("citizen", "name email");
@@ -177,6 +200,7 @@ export const getComplaintAnalytics = async (req, res) => {
 			averagePriorityScores,
 			slaBreachStats,
 			categoryTrends,
+			groupingStats,
 		] = await Promise.all([
 			// Priority distribution
 			Complaint.aggregate([
@@ -230,6 +254,21 @@ export const getComplaintAnalytics = async (req, res) => {
 					},
 				},
 			]),
+
+			// Grouping statistics
+			Complaint.aggregate([
+				{ $match: { createdAt: { $gte: thirtyDaysAgo } } },
+				{
+					$group: {
+						_id: null,
+						totalComplaints: { $sum: 1 },
+						groupedComplaints: {
+							$sum: { $cond: [{ $gt: ["$groupSize", 1] }, 1, 0] },
+						},
+						averageGroupSize: { $avg: "$groupSize" },
+					},
+				},
+			]),
 		]);
 
 		// Get analytics from PostgreSQL
@@ -250,6 +289,7 @@ export const getComplaintAnalytics = async (req, res) => {
 			averagePriorityScores,
 			slaBreachStats,
 			categoryTrends,
+			groupingStats,
 			metricsFromPostgres: result.rows,
 			timeRange: {
 				from: thirtyDaysAgo,
@@ -258,6 +298,51 @@ export const getComplaintAnalytics = async (req, res) => {
 		});
 	} catch (err) {
 		logger.error("Analytics error:", err);
+		res.status(500).json({ error: err.message });
+	}
+};
+
+// New endpoint to get complaint groups
+export const getComplaintGroups = async (req, res) => {
+	try {
+		const { categoryId, limit = 10 } = req.query;
+
+		// Find complaints that are part of groups (groupSize > 1)
+		const matchQuery = { groupSize: { $gt: 1 } };
+		if (categoryId) {
+			matchQuery.category = categoryId;
+		}
+
+		const groups = await Complaint.aggregate([
+			{ $match: matchQuery },
+			{
+				$group: {
+					_id: "$groupId",
+					complaints: { $push: "$$ROOT" },
+					category: { $first: "$category" },
+					count: { $sum: 1 },
+					averagePriority: {
+						$avg: {
+							$switch: {
+								branches: [
+									{ case: { $eq: ["$priority", "high"] }, then: 3 },
+									{ case: { $eq: ["$priority", "medium"] }, then: 2 },
+									{ case: { $eq: ["$priority", "low"] }, then: 1 },
+								],
+								default: 0,
+							},
+						},
+					},
+					createdAt: { $max: "$createdAt" }, // Most recent complaint in group
+				},
+			},
+			{ $sort: { count: -1, createdAt: -1 } },
+			{ $limit: parseInt(limit) },
+		]);
+
+		res.json(groups);
+	} catch (err) {
+		logger.error("Error fetching complaint groups:", err);
 		res.status(500).json({ error: err.message });
 	}
 };

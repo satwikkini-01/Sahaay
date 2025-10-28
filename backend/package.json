@@ -5,7 +5,11 @@
 	"type": "module",
 	"scripts": {
 		"start": "node server.js",
-		"dev": "nodemon server.js"
+		"dev": "nodemon server.js",
+		"dummy-data": "node scripts/addDummyData.js",
+		"test-grouping": "node scripts/testGrouping.js",
+		"show-groups": "node scripts/showGroupedData.js",
+		"demonstrate-ml": "node scripts/demonstrateMLGrouping.js"
 	},
 	"keywords": [],
 	"author": "",
@@ -24,8 +28,11 @@
 		"helmet": "^8.1.0",
 		"jsonwebtoken": "^9.0.2",
 		"mongoose": "^8.19.1",
+		"natural": "^8.1.0",
 		"nodemon": "^3.1.10",
 		"pg": "^8.16.3",
+		"string-similarity": "^4.0.4",
+		"@nlpjs/similarity": "^4.22.7",
 		"swagger-ui-express": "^5.0.1"
 	}
 }

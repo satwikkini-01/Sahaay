@@ -35,7 +35,12 @@ export default function Register() {
 				password: "[REDACTED]",
 			});
 
-			const response = await api.post("api/citizens", registrationData);
+			// POST to the explicit register endpoint on the API
+			// backend registers citizens at POST /api/citizens/register
+			const response = await api.post(
+				"/api/citizens/register",
+				registrationData
+			);
 			console.log("Registration successful:", response.data);
 
 			// TODO: Store auth token if provided
@@ -47,9 +52,23 @@ export default function Register() {
 				"Registration failed:",
 				error.response?.data || error.message
 			);
-			alert(
-				error.response?.data?.error || "Registration failed. Please try again."
-			);
+
+			// Prefer expressive validation messages returned by the backend
+			let message = "Registration failed. Please try again.";
+			if (error.response?.data) {
+				const data = error.response.data;
+				if (Array.isArray(data.errors) && data.errors.length > 0) {
+					message = data.errors
+						.map((e) => e.msg || e.message || JSON.stringify(e))
+						.join("; ");
+				} else if (data.error) {
+					message = data.error;
+				}
+			} else if (error.message) {
+				message = error.message;
+			}
+
+			alert(message);
 		}
 	};
 

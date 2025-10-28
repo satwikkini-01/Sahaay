@@ -1,7 +1,28 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { onAuthStateChanged } from "../utils/authEvent";
 
 export default function Home() {
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+	useEffect(() => {
+		// Check if user is logged in
+		const token = localStorage.getItem("token");
+		const citizenId = localStorage.getItem("citizenId");
+		setIsLoggedIn(!!token && !!citizenId);
+
+		// Listen for auth state changes
+		const unsubscribe = onAuthStateChanged(() => {
+			const newToken = localStorage.getItem("token");
+			const newCitizenId = localStorage.getItem("citizenId");
+			setIsLoggedIn(!!newToken && !!newCitizenId);
+		});
+
+		// Cleanup listener
+		return () => unsubscribe();
+	}, []);
+
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
 			<Head>
@@ -30,18 +51,37 @@ export default function Home() {
 									including electricity, water, roads, and rail infrastructure.
 								</p>
 								<div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-									<Link
-										href="/register"
-										className="btn-primary bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
-									>
-										Get Started
-									</Link>
-									<Link
-										href="/complaints/new"
-										className="btn-secondary bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
-									>
-										File Complaint
-									</Link>
+									{isLoggedIn ? (
+										<>
+											<Link
+												href="/complaints"
+												className="btn-primary bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+											>
+												My Complaints
+											</Link>
+											<Link
+												href="/complaints/new"
+												className="btn-secondary bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+											>
+												File a Complaint
+											</Link>
+										</>
+									) : (
+										<>
+											<Link
+												href="/register"
+												className="btn-primary bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+											>
+												Get Started
+											</Link>
+											<Link
+												href="/complaints/new"
+												className="btn-secondary bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+											>
+												File Complaint
+											</Link>
+										</>
+									)}
 								</div>
 							</div>
 							<div className="flex-1 relative">

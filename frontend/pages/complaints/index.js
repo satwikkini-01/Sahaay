@@ -2,115 +2,81 @@ import Head from "next/head";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
+import { withAuth } from "../../utils/withAuth";
 
-export default function Complaints() {
-	const [filter, setFilter] = useState("all");
-	const [searchTerm, setSearchTerm] = useState("");
+function MyComplaints() {
 	const [complaints, setComplaints] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
+	const [filter, setFilter] = useState("all");
+	const [debugInfo, setDebugInfo] = useState({});
 
 	useEffect(() => {
-		loadComplaints();
+		fetchComplaints();
 	}, []);
 
-	const loadComplaints = async () => {
+	const fetchComplaints = async () => {
 		try {
-			setLoading(true);
-			// Fetch only complaints for the authenticated user
+			// Debug information
+			const token = localStorage.getItem("token");
+			const citizenId = localStorage.getItem("citizenId");
+			
+			setDebugInfo({
+				token: token ? `${token.substring(0, 20)}...` : "No token",
+				citizenId: citizenId || "No citizenId",
+				timestamp: new Date().toISOString()
+			});
+			
+			console.log("Fetching complaints with debug info:", {
+				token: token ? `${token.substring(0, 20)}...` : "No token",
+				citizenId: citizenId || "No citizenId"
+			});
+			
 			const response = await api.get("/api/complaints/my-complaints");
+			console.log("Received complaints response:", response.data);
 			setComplaints(response.data);
-			setError(null);
 		} catch (error) {
-			console.error("Error loading complaints:", error);
-			if (error?.response?.status === 401 || error?.response?.status === 403) {
-				setError(
-					"You must be logged in to view your complaints. Please log in."
-				);
-			} else {
-				setError("Failed to load complaints. Please try again later.");
-			}
+			console.error("Error fetching complaints:", error);
+			console.error("Error response:", error.response?.data);
 		} finally {
 			setLoading(false);
 		}
 	};
 
+	const filteredComplaints = complaints.filter(complaint => {
+		if (filter === "all") return true;
+		return complaint.status === filter;
+	});
+
 	const getStatusColor = (status) => {
-		// Normalize status to handle variants like "in-progress"
-		const key = (status || "").replace(/-/g, " ").toLowerCase();
-		const colors = {
-			pending: "bg-yellow-100 text-yellow-800",
-			"in progress": "bg-blue-100 text-blue-800",
-			resolved: "bg-green-100 text-green-800",
-			escalated: "bg-red-100 text-red-800",
-		};
-		return colors[key] || "bg-gray-100 text-gray-800";
+		switch (status) {
+			case "resolved": return "bg-green-100 text-green-800";
+			case "in-progress": return "bg-yellow-100 text-yellow-800";
+			case "escalated": return "bg-purple-100 text-purple-800";
+			default: return "bg-gray-100 text-gray-800";
+		}
 	};
 
 	const getPriorityColor = (priority) => {
-		const key = (priority || "").toLowerCase();
-		const colors = {
-			low: "bg-gray-100 text-gray-800",
-			medium: "bg-yellow-100 text-yellow-800",
-			high: "bg-orange-100 text-orange-800",
-			critical: "bg-red-100 text-red-800",
-		};
-		return colors[key] || "bg-gray-100 text-gray-800";
-	};
-
-	// Filter complaints based on status filter and search term
-	const filterComplaints = () => {
-		const term = (searchTerm || "").trim().toLowerCase();
-		return (complaints || []).filter((c) => {
-			// Status filter (normalize both sides)
-			if (filter && filter !== "all") {
-				const statusRaw = c?.status || "";
-				const statusKey = statusRaw.replace(/-/g, " ").toLowerCase();
-				if (statusKey !== filter) return false;
-			}
-
-			// Search term filter
-			if (term) {
-				const hay = [
-					c?.title,
-					c?.description,
-					c?.category,
-					c?.department?.name,
-					c?.department,
-				]
-					.filter(Boolean)
-					.join(" ")
-					.toLowerCase();
-				if (!hay.includes(term)) return false;
-			}
-
-			return true;
-		});
+		switch (priority) {
+			case "high": return "bg-red-100 text-red-800";
+			case "medium": return "bg-yellow-100 text-yellow-800";
+			case "low": return "bg-green-100 text-green-800";
+			default: return "bg-gray-100 text-gray-800";
+		}
 	};
 
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50 flex items-center justify-center">
 				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+					<div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
 					<p className="mt-4 text-gray-600">Loading complaints...</p>
-				</div>
-			</div>
-		);
-	}
-
-	if (error) {
-		return (
-			<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50 flex items-center justify-center">
-				<div className="text-center max-w-md mx-auto p-6">
-					<div className="text-red-600 text-xl mb-4">⚠️</div>
-					<p className="text-gray-800 mb-4">{error}</p>
-					<button
-						onClick={loadComplaints}
-						className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-					>
-						Try Again
-					</button>
+					{debugInfo.token && (
+						<div className="mt-4 text-xs text-gray-500">
+							<p>Token: {debugInfo.token}</p>
+							<p>Citizen ID: {debugInfo.citizenId}</p>
+						</div>
+					)}
 				</div>
 			</div>
 		);
@@ -120,173 +86,161 @@ export default function Complaints() {
 		<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
 			<Head>
 				<title>My Complaints - Sahaay</title>
-				<meta
-					name="description"
-					content="View and track your complaints on Sahaay"
-				/>
+				<meta name="description" content="View your complaints on Sahaay" />
 			</Head>
 
-			<div className="container mx-auto flex justify-between items-center px-6 py-4">
-				<h1 className="text-2xl font-semibold text-gray-800">My Complaints</h1>
-				<Link
-					href="/complaints/new"
-					className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-				>
-					File New Complaint
-				</Link>
-			</div>
-
-			{/* Main Content */}
 			<main className="container mx-auto px-4 py-12">
-				{/* Control Panel */}
-				<div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-					<div className="flex flex-col md:flex-row justify-between items-center gap-4">
-						{/* Search */}
-						<div className="w-full md:w-1/3">
-							<input
-								type="text"
-								placeholder="Search complaints..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-							/>
+				<div className="max-w-6xl mx-auto">
+					<div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+						<div>
+							<h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+								My Complaints
+							</h2>
+							<p className="text-gray-600 mt-2">
+								Track the status of your submitted complaints
+							</p>
 						</div>
-
-						{/* Filters */}
-						<div className="flex gap-2">
-							{["All", "Pending", "In Progress", "Resolved", "Rejected"].map(
-								(status) => (
-									<button
-										key={status}
-										onClick={() => setFilter(status.toLowerCase())}
-										className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-											filter === status.toLowerCase()
-												? "bg-blue-600 text-white"
-												: "bg-gray-100 text-gray-600 hover:bg-gray-200"
-										}`}
-									>
-										{status}
-									</button>
-								)
-							)}
-						</div>
-					</div>
-				</div>
-
-				{/* Complaints List */}
-				<div className="grid gap-6">
-					{filterComplaints().map((complaint) => {
-						const createdDate = new Date(complaint.createdAt);
-						const formattedDate = createdDate.toLocaleDateString("en-US", {
-							year: "numeric",
-							month: "short",
-							day: "numeric",
-						});
-
-						return (
-							<div
-								key={complaint._id}
-								className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6"
-							>
-								<div className="flex flex-col md:flex-row justify-between gap-4">
-									<div className="flex-1">
-										<div className="flex items-center gap-4 mb-2">
-											<h3 className="text-xl font-semibold">
-												{complaint.title}
-											</h3>
-											<span className="text-sm text-gray-500">
-												#{String(complaint._id).slice(-6).toUpperCase()}
-											</span>
-										</div>
-										<p className="text-gray-600 mb-4">
-											{complaint.description}
-										</p>
-										<div className="flex flex-wrap gap-4 text-sm">
-											<div className="flex items-center gap-2">
-												<span className="text-gray-500">Category:</span>
-												<span className="font-medium">
-													{complaint.category}
-												</span>
-											</div>
-											<div className="flex items-center gap-2">
-												<span className="text-gray-500">Location:</span>
-												<span className="font-medium">
-													{typeof complaint.location === "string"
-														? complaint.location
-														: complaint.location?.address
-														? complaint.location.address
-														: Array.isArray(complaint.location?.coordinates)
-														? complaint.location.coordinates.join(", ")
-														: "—"}
-												</span>
-											</div>
-											<div className="flex items-center gap-2">
-												<span className="text-gray-500">Date:</span>
-												<span className="font-medium">{formattedDate}</span>
-											</div>
-											<div className="flex items-center gap-2">
-												<span className="text-gray-500">Department:</span>
-												<span className="font-medium">
-													{typeof complaint.department === "string"
-														? complaint.department
-														: complaint.department?.name ??
-														  complaint.department?.pgDeptId ??
-														  "—"}
-												</span>
-											</div>
-										</div>
-									</div>
-									<div className="flex flex-col gap-2 min-w-[150px]">
-										<span
-											className={`px-3 py-1 rounded-full text-sm font-medium text-center ${getStatusColor(
-												complaint.status
-											)}`}
-										>
-											{complaint.status}
-										</span>
-										<span
-											className={`px-3 py-1 rounded-full text-sm font-medium text-center ${getPriorityColor(
-												complaint.priority
-											)}`}
-										>
-											{complaint.priority} Priority
-										</span>
-										<Link
-											href={`/complaints/${complaint._id}`}
-											className="mt-2 text-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-										>
-											View Details
-										</Link>
-									</div>
-								</div>
-							</div>
-						);
-					})}
-				</div>
-
-				{/* Empty State */}
-				{filterComplaints().length === 0 && (
-					<div className="text-center py-12">
-						<div className="text-6xl mb-4">🔍</div>
-						<h3 className="text-xl font-semibold text-gray-800 mb-2">
-							No complaints found
-						</h3>
-						<p className="text-gray-600">
-							{searchTerm
-								? "Try adjusting your search criteria"
-								: filter !== "all"
-								? "Try changing the status filter"
-								: "You haven't filed any complaints yet"}
-						</p>
 						<Link
 							href="/complaints/new"
-							className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+							className="mt-4 md:mt-0 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
 						>
-							File Your First Complaint
+							File New Complaint
 						</Link>
 					</div>
-				)}
+					
+					{/* Debug Info */}
+					<div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-sm">
+						<h3 className="font-semibold text-yellow-800 mb-2">Debug Information</h3>
+						<p>Token: {debugInfo.token}</p>
+						<p>Citizen ID: {debugInfo.citizenId}</p>
+						<p>Complaints Count: {complaints.length}</p>
+					</div>
+
+					{/* Filters */}
+					<div className="mb-6 flex flex-wrap gap-2">
+						<button
+							onClick={() => setFilter("all")}
+							className={`px-4 py-2 rounded-lg font-medium ${
+								filter === "all"
+									? "bg-blue-600 text-white"
+									: "bg-white text-gray-700 hover:bg-gray-100"
+							}`}
+						>
+							All Complaints
+						</button>
+						<button
+							onClick={() => setFilter("pending")}
+							className={`px-4 py-2 rounded-lg font-medium ${
+								filter === "pending"
+									? "bg-blue-600 text-white"
+									: "bg-white text-gray-700 hover:bg-gray-100"
+							}`}
+						>
+							Pending
+						</button>
+						<button
+							onClick={() => setFilter("in-progress")}
+							className={`px-4 py-2 rounded-lg font-medium ${
+								filter === "in-progress"
+									? "bg-blue-600 text-white"
+									: "bg-white text-gray-700 hover:bg-gray-100"
+							}`}
+						>
+							In Progress
+						</button>
+						<button
+							onClick={() => setFilter("resolved")}
+							className={`px-4 py-2 rounded-lg font-medium ${
+								filter === "resolved"
+									? "bg-blue-600 text-white"
+									: "bg-white text-gray-700 hover:bg-gray-100"
+							}`}
+						>
+							Resolved
+						</button>
+					</div>
+
+					{/* Complaints List */}
+					{filteredComplaints.length === 0 ? (
+						<div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+							<svg
+								className="mx-auto h-16 w-16 text-gray-400"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+								/>
+							</svg>
+							<h3 className="mt-4 text-xl font-medium text-gray-900">
+								No complaints found
+							</h3>
+							<p className="mt-2 text-gray-500">
+								Get started by filing a new complaint.
+							</p>
+							<Link
+								href="/complaints/new"
+								className="mt-6 inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+							>
+								File New Complaint
+							</Link>
+						</div>
+					) : (
+						<div className="grid gap-6">
+							{filteredComplaints.map((complaint) => (
+								<div
+									key={complaint._id}
+									className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow p-6"
+								>
+									<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+										<div>
+											<h3 className="text-xl font-bold text-gray-800">
+												{complaint.title}
+											</h3>
+											<div className="flex flex-wrap items-center gap-2 mt-2">
+												<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+													{complaint.category}
+												</span>
+												<span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(complaint.status)}`}>
+													{complaint.status.replace("-", " ")}
+												</span>
+												<span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(complaint.priority)}`}>
+													{complaint.priority}
+												</span>
+												{complaint.groupSize > 1 && (
+													<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+														Group: {complaint.groupSize} similar
+													</span>
+												)}
+											</div>
+											<p className="mt-3 text-gray-600">
+												{complaint.description.substring(0, 150)}...
+											</p>
+											<div className="mt-3 text-sm text-gray-500">
+												Submitted on {new Date(complaint.createdAt).toLocaleDateString()}
+											</div>
+										</div>
+										<div className="flex-shrink-0">
+											<Link
+												href={`/complaints/${complaint._id}`}
+												className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+											>
+												View Details
+											</Link>
+										</div>
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+				</div>
 			</main>
 		</div>
 	);
 }
+
+export default withAuth(MyComplaints);

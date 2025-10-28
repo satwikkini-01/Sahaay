@@ -14,6 +14,7 @@ const complaintSchema = new mongoose.Schema(
 		title: { type: String, required: true },
 		description: { type: String, required: true },
 		category: { type: String, required: true },
+		subcategory: { type: String },
 		priority: {
 			type: String,
 			enum: ["low", "medium", "high"],
@@ -28,19 +29,24 @@ const complaintSchema = new mongoose.Schema(
 			type: {
 				type: String,
 				enum: ["Point"],
-				default: "Point",
+				required: true,
 			},
 			coordinates: {
 				type: [Number],
 				index: "2dsphere",
+				required: true,
 			},
-			address: String,
+			address: { type: String, required: true },
 			landmark: String,
-			zipcode: String,
+			zipcode: { type: String, required: true },
+			city: { type: String, required: true },
 		},
 		slaHours: { type: Number, default: 48 },
 		slaDeadline: { type: Date },
 		escalationLevel: { type: Number, default: 0 },
+		// Grouping fields for similar complaints
+		groupId: { type: String, index: true },
+		groupSize: { type: Number, default: 1 },
 		meta: {
 			priorityScore: Number,
 			priorityFactors: {

@@ -53,8 +53,6 @@ export const complaintRules = [
 		.isLength({ min: 20, max: 1000 })
 		.withMessage("Description must be between 20 and 1000 characters"),
 	body("category").trim().notEmpty().withMessage("Category is required"),
-	body("location")
-		.trim()
-		.isLength({ min: 5, max: 200 })
-		.withMessage("Location must be between 5 and 200 characters"),
+	// Fix: Remove location validation as it's an object, not a string
+	// The detailed validation is done in the controller
 ];

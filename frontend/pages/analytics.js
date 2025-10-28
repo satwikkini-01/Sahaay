@@ -1,317 +1,208 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import api from "../utils/api";
+import ComplaintGroups from "../components/ComplaintGroups";
 
 export default function Analytics() {
-	const [loading, setLoading] = useState(true);
 	const [analytics, setAnalytics] = useState(null);
-	const [error, setError] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [activeTab, setActiveTab] = useState("overview");
 
 	useEffect(() => {
-		loadAnalytics();
+		fetchAnalytics();
 	}, []);
 
-	const loadAnalytics = async () => {
+	const fetchAnalytics = async () => {
 		try {
-			setLoading(true);
 			const response = await api.get("/api/complaints/analytics");
 			setAnalytics(response.data);
-			setError(null);
 		} catch (error) {
-			console.error("Error loading analytics:", error);
-			setError("Failed to load analytics data. Please try again later.");
+			console.error("Error fetching analytics:", error);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const calculateStats = () => {
-		if (!analytics) return null;
-
-		const stats = {
-			total: 0,
-			resolved: 0,
-			pending: 0,
-			inProgress: 0,
-			avgResolutionTime: "0 hours",
-			satisfactionRate: "0%",
-		};
-
-		// Calculate total complaints and status distribution
-		analytics.priorityDistribution.forEach((item) => {
-			stats.total += item.count;
-			if (item._id?.toLowerCase() === "resolved") stats.resolved += item.count;
-			else if (item._id?.toLowerCase() === "pending")
-				stats.pending += item.count;
-			else if (item._id?.toLowerCase() === "in progress")
-				stats.inProgress += item.count;
-		});
-
-		// Calculate average resolution time
-		if (analytics.metricsFromPostgres.length > 0) {
-			const avgTime =
-				analytics.metricsFromPostgres.reduce(
-					(acc, curr) => acc + curr.avg_resolution_time,
-					0
-				) / analytics.metricsFromPostgres.length;
-			stats.avgResolutionTime = `${Math.round(avgTime)} hours`;
-		}
-
-		// Calculate satisfaction rate based on resolution rate
-		if (stats.total > 0) {
-			stats.satisfactionRate = `${Math.round(
-				(stats.resolved / stats.total) * 100
-			)}%`;
-		}
-
-		return stats;
-	};
-
-	const calculateCategoryData = () => {
-		if (!analytics) return [];
-
-		const categoryTotals = {};
-		let total = 0;
-
-		// Sum complaints by category
-		analytics.categoryTrends.forEach((item) => {
-			const category = item._id.category;
-			categoryTotals[category] = (categoryTotals[category] || 0) + item.count;
-			total += item.count;
-		});
-
-		// Convert to array with percentages
-		return Object.entries(categoryTotals).map(([name, count]) => ({
-			name,
-			count,
-			percentage: Math.round((count / total) * 100),
-		}));
-	};
-
-	// Calculate recent activity from real data
-	const getRecentActivity = () => {
-		if (!analytics || !analytics.recentComplaints) return [];
-
-		return analytics.recentComplaints.slice(0, 4).map((complaint) => ({
-			action:
-				complaint.status === "RESOLVED"
-					? "Complaint Resolved"
-					: complaint.status === "IN_PROGRESS"
-					? "Status Update"
-					: "New Complaint",
-			department: complaint.department,
-			time: new Date(complaint.updatedAt).toRelativeTime(),
-		}));
-	};
-
-	const stats = calculateStats() || {
-		total: 0,
-		resolved: 0,
-		pending: 0,
-		inProgress: 0,
-		avgResolutionTime: "0 hours",
-		satisfactionRate: "0%",
-	};
-
-	const categoryData = calculateCategoryData();
-	const recentActivity = getRecentActivity();
-
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50 flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-					<p className="mt-4 text-gray-600">Loading analytics...</p>
-				</div>
+				<div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
 			</div>
 		);
 	}
 
-	if (error) {
-		return (
-			<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50 flex items-center justify-center">
-				<div className="text-center max-w-md mx-auto p-6">
-					<div className="text-red-600 text-xl mb-4">⚠️</div>
-					<p className="text-gray-800 mb-4">{error}</p>
-					<button
-						onClick={loadAnalytics}
-						className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-					>
-						Try Again
-					</button>
-				</div>
-			</div>
-		);
-	}
+	const priorityDistribution = analytics?.priorityDistribution || [];
+	const slaBreachStats = analytics?.slaBreachStats || [];
+	const groupingStats = analytics?.groupingStats?.[0] || {};
+
+	const getPriorityColor = (priority) => {
+		switch (priority) {
+			case "high": return "bg-red-500";
+			case "medium": return "bg-yellow-500";
+			case "low": return "bg-green-500";
+			default: return "bg-gray-500";
+		}
+	};
+
+	const getCategoryColor = (index) => {
+		const colors = [
+			"bg-blue-500",
+			"bg-purple-500",
+			"bg-green-500",
+			"bg-yellow-500",
+			"bg-red-500",
+			"bg-indigo-500",
+			"bg-pink-500",
+			"bg-teal-500"
+		];
+		return colors[index % colors.length];
+	};
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
 			<Head>
-				<title>Analytics Dashboard - Sahaay</title>
-				<meta
-					name="description"
-					content="Analytics and insights for Sahaay complaints"
-				/>
+				<title>Analytics - Sahaay</title>
+				<meta name="description" content="Analytics dashboard for Sahaay" />
 			</Head>
 
-			<div className="container mx-auto flex justify-between items-center px-6 py-4">
-				<div className="text-sm text-gray-600">Analytics Dashboard</div>
-				<div className="text-sm text-gray-600">
-					Last updated: {new Date().toLocaleString()}
-				</div>
-			</div>
-
-			{/* Main Content */}
 			<main className="container mx-auto px-4 py-12">
-				{/* Overview Cards */}
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-					{[
-						{ label: "Total Complaints", value: stats.total, color: "blue" },
-						{ label: "Resolved", value: stats.resolved, color: "green" },
-						{ label: "Pending", value: stats.pending, color: "yellow" },
-						{ label: "In Progress", value: stats.inProgress, color: "purple" },
-					].map((stat, idx) => (
-						<div
-							key={idx}
-							className={`bg-${stat.color}-50 rounded-xl p-6 border border-${stat.color}-100 shadow-lg`}
+				<div className="max-w-6xl mx-auto">
+					<h2 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+						Analytics Dashboard
+					</h2>
+					<p className="text-gray-600 text-center mb-12">
+						Insights and trends from citizen complaints
+					</p>
+
+					{/* Tabs */}
+					<div className="flex border-b border-gray-200 mb-8">
+						<button
+							className={`py-2 px-4 font-medium text-sm ${activeTab === "overview" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+							onClick={() => setActiveTab("overview")}
 						>
-							<h3 className="text-lg font-medium text-gray-600">
-								{stat.label}
-							</h3>
-							<p className={`text-3xl font-bold text-${stat.color}-600 mt-2`}>
-								{stat.value}
-							</p>
-						</div>
-					))}
-				</div>
-
-				{/* Charts and Analytics */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-					{/* Category Distribution */}
-					<div className="bg-white rounded-xl shadow-lg p-6">
-						<h3 className="text-xl font-semibold mb-6">
-							Complaints by Category
-						</h3>
-						<div className="space-y-4">
-							{categoryData.map((category, idx) => (
-								<div key={idx}>
-									<div className="flex justify-between text-sm mb-1">
-										<span className="font-medium">{category.name}</span>
-										<span className="text-gray-600">
-											{category.count} complaints
-										</span>
-									</div>
-									<div className="w-full bg-gray-200 rounded-full h-2">
-										<div
-											className="bg-blue-600 h-2 rounded-full"
-											style={{ width: `${category.percentage}%` }}
-										/>
-									</div>
-								</div>
-							))}
-						</div>
+							Overview
+						</button>
+						<button
+							className={`py-2 px-4 font-medium text-sm ${activeTab === "groups" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+							onClick={() => setActiveTab("groups")}
+						>
+							Complaint Groups
+						</button>
 					</div>
 
-					{/* Performance Metrics */}
-					<div className="bg-white rounded-xl shadow-lg p-6">
-						<h3 className="text-xl font-semibold mb-6">Performance Metrics</h3>
-						<div className="grid grid-cols-2 gap-6">
-							<div className="text-center p-4 bg-green-50 rounded-lg">
-								<p className="text-sm text-gray-600 mb-1">
-									Average Resolution Time
-								</p>
-								<p className="text-2xl font-bold text-green-600">
-									{stats.avgResolutionTime}
-								</p>
+					{activeTab === "overview" ? (
+						<div className="space-y-12">
+							{/* Key Metrics */}
+							<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+								<div className="bg-white rounded-xl shadow p-6">
+									<h3 className="text-lg font-semibold text-gray-800 mb-2">Total Complaints</h3>
+									<p className="text-3xl font-bold text-blue-600">{groupingStats.totalComplaints || 0}</p>
+								</div>
+								<div className="bg-white rounded-xl shadow p-6">
+									<h3 className="text-lg font-semibold text-gray-800 mb-2">Grouped Complaints</h3>
+									<p className="text-3xl font-bold text-purple-600">{groupingStats.groupedComplaints || 0}</p>
+								</div>
+								<div className="bg-white rounded-xl shadow p-6">
+									<h3 className="text-lg font-semibold text-gray-800 mb-2">Avg Group Size</h3>
+									<p className="text-3xl font-bold text-green-600">
+										{groupingStats.averageGroupSize ? groupingStats.averageGroupSize.toFixed(1) : "0.0"}
+									</p>
+								</div>
+								<div className="bg-white rounded-xl shadow p-6">
+									<h3 className="text-lg font-semibold text-gray-800 mb-2">Grouping Rate</h3>
+									<p className="text-3xl font-bold text-yellow-600">
+										{groupingStats.totalComplaints && groupingStats.groupedComplaints
+											? ((groupingStats.groupedComplaints / groupingStats.totalComplaints) * 100).toFixed(1)
+											: "0.0"}%
+									</p>
+								</div>
 							</div>
-							<div className="text-center p-4 bg-blue-50 rounded-lg">
-								<p className="text-sm text-gray-600 mb-1">Satisfaction Rate</p>
-								<p className="text-2xl font-bold text-blue-600">
-									{stats.satisfactionRate}
-								</p>
+
+							{/* Priority Distribution */}
+							<div className="bg-white rounded-xl shadow p-6">
+								<h3 className="text-xl font-semibold text-gray-800 mb-6">Priority Distribution</h3>
+								<div className="space-y-4">
+									{priorityDistribution.map((item, index) => (
+										<div key={item._id} className="flex items-center">
+											<div className="w-32 text-sm font-medium text-gray-700 capitalize">
+												{item._id || "Unknown"}
+											</div>
+											<div className="flex-1 ml-4">
+												<div className="flex items-center">
+													<div className="w-full bg-gray-200 rounded-full h-4">
+														<div
+															className={`h-4 rounded-full ${getPriorityColor(item._id)}`}
+															style={{ width: `${(item.count / (priorityDistribution.reduce((sum, p) => sum + p.count, 0) || 1)) * 100}%` }}
+														></div>
+													</div>
+													<div className="ml-4 text-sm font-medium text-gray-700 w-16">
+														{item.count}
+													</div>
+												</div>
+											</div>
+										</div>
+									))}
+								</div>
+							</div>
+
+							{/* SLA Breach Statistics */}
+							<div className="bg-white rounded-xl shadow p-6">
+								<h3 className="text-xl font-semibold text-gray-800 mb-6">SLA Breach Statistics</h3>
+								<div className="overflow-x-auto">
+									<table className="min-w-full divide-y divide-gray-200">
+										<thead className="bg-gray-50">
+											<tr>
+												<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													Category
+												</th>
+												<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													Total Complaints
+												</th>
+												<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													Breached SLA
+												</th>
+												<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													Breach Rate
+												</th>
+											</tr>
+										</thead>
+										<tbody className="bg-white divide-y divide-gray-200">
+											{slaBreachStats.map((item, index) => (
+												<tr key={index}>
+													<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 capitalize">
+														{item._id}
+													</td>
+													<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+														{item.totalComplaints}
+													</td>
+													<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+														{item.slaBreaches}
+													</td>
+													<td className="px-6 py-4 whitespace-nowrap">
+														<div className="flex items-center">
+															<div className="w-24 bg-gray-200 rounded-full h-2">
+																<div
+																	className={`h-2 rounded-full ${item.slaBreaches / item.totalComplaints > 0.5 ? "bg-red-500" : "bg-green-500"}`}
+																	style={{ width: `${(item.slaBreaches / (item.totalComplaints || 1)) * 100}%` }}
+																></div>
+															</div>
+															<span className="ml-2 text-sm text-gray-500">
+																{item.totalComplaints ? ((item.slaBreaches / item.totalComplaints) * 100).toFixed(1) : 0}%
+															</span>
+														</div>
+													</td>
+												</tr>
+											))}
+										</tbody>
+									</table>
+								</div>
 							</div>
 						</div>
-					</div>
-
-					{/* Recent Activity */}
-					<div className="bg-white rounded-xl shadow-lg p-6">
-						<h3 className="text-xl font-semibold mb-6">Recent Activity</h3>
-						<div className="space-y-4">
-							{recentActivity.map((activity, idx) => (
-								<div
-									key={idx}
-									className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg"
-								>
-									<div className="w-2 h-2 rounded-full bg-blue-500" />
-									<div>
-										<p className="font-medium">{activity.action}</p>
-										<p className="text-sm text-gray-600">
-											{activity.department} • {activity.time}
-										</p>
-									</div>
-								</div>
-							))}
+					) : (
+						<div className="bg-white rounded-xl shadow p-6">
+							<ComplaintGroups />
 						</div>
-					</div>
-
-					{/* Trends */}
-					<div className="bg-white rounded-xl shadow-lg p-6">
-						<h3 className="text-xl font-semibold mb-6">Resolution Trends</h3>
-						<div className="grid grid-cols-7 gap-2">
-							{Array.from({ length: 28 }, (_, i) => (
-								<div
-									key={i}
-									className={`h-8 rounded-md ${
-										Math.random() > 0.5 ? "bg-green-100" : "bg-green-300"
-									}`}
-									title={`Day ${i + 1}`}
-								/>
-							))}
-						</div>
-						<div className="mt-4 text-sm text-gray-600 text-center">
-							Resolution activity for the past 28 days
-						</div>
-					</div>
-				</div>
-
-				{/* Department Insights */}
-				<div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-					<h3 className="text-xl font-semibold mb-6">Department Performance</h3>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-						{analytics?.departmentMetrics?.map((dept, idx) => {
-							const totalComplaints =
-								dept.resolved + dept.pending + dept.in_progress;
-							const satisfactionRate = Math.round(
-								(dept.resolved / totalComplaints) * 100
-							);
-
-							return (
-								<div key={idx} className="bg-gray-50 rounded-lg p-4">
-									<h4 className="font-semibold mb-3">{dept.department}</h4>
-									<div className="space-y-2 text-sm">
-										<div className="flex justify-between">
-											<span className="text-gray-600">Resolved:</span>
-											<span className="font-medium">{dept.resolved}</span>
-										</div>
-										<div className="flex justify-between">
-											<span className="text-gray-600">Pending:</span>
-											<span className="font-medium">{dept.pending}</span>
-										</div>
-										<div className="flex justify-between">
-											<span className="text-gray-600">In Progress:</span>
-											<span className="font-medium">{dept.in_progress}</span>
-										</div>
-										<div className="flex justify-between">
-											<span className="text-gray-600">Avg Response:</span>
-											<span className="font-medium">
-												{Math.round(dept.avg_response_time)}h
-											</span>
-										</div>
-									</div>
-								</div>
-							);
-						})}
-					</div>
+					)}
 				</div>
 			</main>
 		</div>
