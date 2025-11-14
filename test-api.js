@@ -8,7 +8,7 @@ async function testAPI() {
     const healthResponse = await axios.get('http://localhost:5000/health');
     console.log('Health endpoint:', healthResponse.data);
     
-    // Test login
+    // Test login response
     const loginResponse = await axios.post('http://localhost:5000/api/citizens/login', {
       email: 'rajesh.kumar@example.com',
       password: 'Password@123'
