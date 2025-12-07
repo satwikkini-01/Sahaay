@@ -6,6 +6,7 @@ import { connectPostgres } from "./config/postgres.js";
 import complaintRoutes from "./routes/complaintRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import citizenRoutes from "./routes/citizenRoutes.js";
+import mlRoutes from "./routes/mlRoutes.js";
 import { startSLAWatcher } from "./utils/slaScheduler.js";
 import { configureMiddleware } from "./middleware/index.js";
 import logger from "./utils/logger.js";
@@ -44,6 +45,7 @@ try {
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/citizens", citizenRoutes);
+app.use("/api/ml", mlRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

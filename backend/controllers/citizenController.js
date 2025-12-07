@@ -190,3 +190,53 @@ export const loginCitizen = async (req, res) => {
 		res.status(500).json({ error: "Login failed" });
 	}
 };
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { email, name, googleId } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: "Email is required" });
+        }
+
+        // Check if citizen exists
+        let citizen = await Citizen.findOne({ email });
+
+        if (!citizen) {
+            // Create new citizen if not exists
+            citizen = new Citizen({
+                name: name || email.split("@")[0],
+                email,
+                password: googleId || Date.now().toString(), // Dummy password for google users
+                phone: "0000000000", // Placeholder
+            });
+            await citizen.save();
+        }
+
+        // Generate JWT
+        const token = jwt.sign({ id: citizen._id }, process.env.JWT_SECRET, {
+            expiresIn: "30d",
+        });
+
+        res.json({
+            token,
+            citizen: {
+                id: citizen._id,
+                name: citizen.name,
+                email: citizen.email,
+            },
+        });
+    } catch (err) {
+        logger.error("Google login error:", err);
+        res.status(500).json({ error: "Google login failed" });
+    }
+};
+
+export const getProfile = async (req, res) => {
+    try {
+        const citizen = await Citizen.findById(req.user.id).select("-password");
+        res.json(citizen);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

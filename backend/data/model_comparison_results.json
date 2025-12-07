@@ -1,0 +1,178 @@
+{
+  "timestamp": "2025-12-07T07:20:55.262Z",
+  "datasetSize": 5000,
+  "trainSize": 4000,
+  "testSize": 1000,
+  "results": [
+    {
+      "name": "Naive Bayes",
+      "accuracy": "98.20",
+      "trainTime": 461,
+      "confusionMatrix": {
+        "high": {
+          "high": 185,
+          "medium": 0,
+          "low": 0
+        },
+        "medium": {
+          "high": 0,
+          "medium": 493,
+          "low": 0
+        },
+        "low": {
+          "high": 0,
+          "medium": 18,
+          "low": 304
+        }
+      },
+      "highPrecision": "100.00",
+      "highRecall": "100.00",
+      "highF1": "100.00",
+      "mediumPrecision": "96.48",
+      "mediumRecall": "100.00",
+      "mediumF1": "98.21",
+      "lowPrecision": "100.00",
+      "lowRecall": "94.41",
+      "lowF1": "97.12",
+      "pros": [
+        "Fast training",
+        "Low memory",
+        "Probabilistic output",
+        "Works with small datasets"
+      ],
+      "cons": [
+        "Assumes feature independence",
+        "Sensitive to feature correlation"
+      ],
+      "memoryUsage": "~50 MB",
+      "complexity": "O(n)"
+    },
+    {
+      "name": "Ensemble (ML + Rules)",
+      "accuracy": "98.20",
+      "trainTime": 483,
+      "confusionMatrix": {
+        "high": {
+          "high": 185,
+          "medium": 0,
+          "low": 0
+        },
+        "medium": {
+          "high": 0,
+          "medium": 493,
+          "low": 0
+        },
+        "low": {
+          "high": 0,
+          "medium": 18,
+          "low": 304
+        }
+      },
+      "highPrecision": "100.00",
+      "highRecall": "100.00",
+      "highF1": "100.00",
+      "mediumPrecision": "96.48",
+      "mediumRecall": "100.00",
+      "mediumF1": "98.21",
+      "lowPrecision": "100.00",
+      "lowRecall": "94.41",
+      "lowF1": "97.12",
+      "pros": [
+        "Best accuracy",
+        "Robust to edge cases",
+        "Explainable decisions",
+        "Combines strengths"
+      ],
+      "cons": [
+        "More complex",
+        "Slightly slower inference"
+      ],
+      "memoryUsage": "~100 MB",
+      "complexity": "O(n) + Rules"
+    },
+    {
+      "name": "Logistic Regression",
+      "accuracy": "40.40",
+      "trainTime": 116,
+      "confusionMatrix": {
+        "high": {
+          "high": 41,
+          "medium": 74,
+          "low": 70
+        },
+        "medium": {
+          "high": 0,
+          "medium": 41,
+          "low": 452
+        },
+        "low": {
+          "high": 0,
+          "medium": 0,
+          "low": 322
+        }
+      },
+      "highPrecision": "100.00",
+      "highRecall": "22.16",
+      "highF1": "36.28",
+      "mediumPrecision": "35.65",
+      "mediumRecall": "8.32",
+      "mediumF1": "13.49",
+      "lowPrecision": "38.15",
+      "lowRecall": "100.00",
+      "lowF1": "55.23",
+      "pros": [
+        "Interpretable coefficients",
+        "Probability calibration",
+        "Multi-class support"
+      ],
+      "cons": [
+        "Requires feature scaling",
+        "Linear decision boundary"
+      ],
+      "memoryUsage": "~75 MB",
+      "complexity": "O(n × features)"
+    },
+    {
+      "name": "Decision Tree",
+      "accuracy": "40.40",
+      "trainTime": 8,
+      "confusionMatrix": {
+        "high": {
+          "high": 41,
+          "medium": 74,
+          "low": 70
+        },
+        "medium": {
+          "high": 0,
+          "medium": 41,
+          "low": 452
+        },
+        "low": {
+          "high": 0,
+          "medium": 0,
+          "low": 322
+        }
+      },
+      "highPrecision": "100.00",
+      "highRecall": "22.16",
+      "highF1": "36.28",
+      "mediumPrecision": "35.65",
+      "mediumRecall": "8.32",
+      "mediumF1": "13.49",
+      "lowPrecision": "38.15",
+      "lowRecall": "100.00",
+      "lowF1": "55.23",
+      "pros": [
+        "Highly interpretable",
+        "Handles non-linear patterns",
+        "No feature scaling needed"
+      ],
+      "cons": [
+        "Prone to overfitting",
+        "Unstable (small data changes)"
+      ],
+      "memoryUsage": "~80 MB",
+      "complexity": "O(n log n)"
+    }
+  ]
+}

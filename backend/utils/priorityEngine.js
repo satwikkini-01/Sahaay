@@ -1,4 +1,4 @@
-import { mlPredictPriority } from "./mlPriorityEngine.js";
+import { predictPriority } from "./mlPriorityEngine.js";
 import logger from "./logger.js";
 
 // Category-specific critical issues with priority weights
@@ -231,24 +231,19 @@ const calculateSLAHours = (priorityScore, category) => {
     // Base SLA hours by category
     const baseSLA = {
         water: {
-            high: 2, // 2 hours for high priority water issues
-            medium: 6, // 6 hours for medium priority
-            low: 24, // 24 hours for low priority
+            high: 2,
+            medium: 6,
+            low: 24,
         },
         electricity: {
-            high: 2, // 2 hours for power issues
+            high: 2,
             medium: 6,
             low: 24,
         },
         roads: {
-            high: 4, // 4 hours for critical road issues
+            high: 4,
             medium: 12,
             low: 48,
-        },
-        rail: {
-            high: 1, // 1 hour for rail safety issues
-            medium: 4,
-            low: 24,
         },
     }[category.toLowerCase()] || {
         high: 4,
@@ -256,136 +251,104 @@ const calculateSLAHours = (priorityScore, category) => {
         low: 48,
     };
 
-    if (priorityScore >= 80) {
-        return baseSLA.high;
-    } else if (priorityScore >= 40) {
-        return baseSLA.medium;
-    } else {
-        return baseSLA.low;
-    }
+    if (priorityScore >= 80) return baseSLA.high;
+    if (priorityScore >= 40) return baseSLA.medium;
+    return baseSLA.low;
+};
+
+const getPriorityScore = (priority) => {
+    const scoreMap = { high: 85, medium: 50, low: 20 };
+    return scoreMap[priority] || 50;
+};
+
+const determinePriority = (score) => {
+    if (score >= 70) return 'high';
+    if (score >= 40) return 'medium';
+    return 'low';
+};
+
+const determineSLA = (score) => {
+    if (score >= 80) return 4;
+    if (score >= 60) return 12;
+    if (score >= 40) return 24;
+    return 48;
 };
 
 export const analyzePriority = async (complaint) => {
-    try {
-        logger.info("Analyzing priority for complaint...");
+	try {
+		// ML-based priority prediction
+		const mlResult = predictPriority(complaint);
+		const mlScore = getPriorityScore(mlResult.priority);
 
-        // 1. Get ML-based priority prediction
-        const mlResult = mlPredictPriority(complaint);
-        logger.info(`ML Priority: ${mlResult.priority}`);
+		// Rule-based text analysis
+		const textScore = analyzeText(
+			complaint.description,
+			complaint.title,
+			complaint.category
+		);
 
-        // Convert ML priority to score (0-100)
-        const mlScoreMap = { high: 85, medium: 50, low: 20 };
-        const mlScore = mlScoreMap[mlResult.priority] || 50;
+		// Time-based factors
+		const timeScore = analyzeTimeFactors();
 
-        // 2. Calculate rule-based score
-        const textScore = analyzeText(
-            complaint.title || "",
-            complaint.description || "",
-            complaint.category || "general"
-        );
-        const timeScore = analyzeTimeFactors();
-        const ruleBasedScore = Math.min(100, textScore + timeScore);
-        logger.info(
-            `Rule-based score: ${ruleBasedScore} (text: ${textScore}, time: ${timeScore})`
-        );
+		// Combined scoring (50% ML, 50% Rule-based)
+		const ML_WEIGHT = 0.5;
+		const RULE_WEIGHT = 0.5;
+		const combinedScore = Math.min(
+			100,
+			mlScore * ML_WEIGHT + (textScore + timeScore) * RULE_WEIGHT
+		);
 
-        // 3. Get weather impact (if coordinates available)
-        let weatherBoost = 0;
-        let weatherData = null;
-        let weatherExplanation = "No weather data";
+		const priority = determinePriority(combinedScore);
+		const slaHours = determineSLA(combinedScore);
 
-        if (complaint.location?.coordinates) {
-            try {
-                const { getWeatherPriorityBoost } = await import(
-                    "./weatherService.js"
-                );
-                const weatherResult = await getWeatherPriorityBoost(
-                    complaint.location.coordinates,
-                    complaint.category || "general"
-                );
-                weatherBoost = weatherResult.boost;
-                weatherData = weatherResult.weatherData;
-                weatherExplanation = weatherResult.explanation;
-                logger.info(
-                    `Weather boost: ${weatherBoost} - ${weatherExplanation}`
-                );
-            } catch (error) {
-                logger.warn("Weather service unavailable:", error.message);
-            }
-        }
+		// ===============================================
+		// DEMONSTRATION LOGGING (Faculty Demo)
+		// ===============================================
+		console.log('\n' + '='.repeat(80));
+		console.log('🤖 ML PRIORITY ANALYSIS - COMPLAINT PROCESSED');
+		console.log('='.repeat(80));
+		console.log(`📝 Complaint: "${complaint.title?.substring(0, 60)}..."`);
+		console.log(`📂 Category: ${complaint.category || 'N/A'}`);
+		console.log('\n--- ML ENSEMBLE PREDICTION ---');
+		console.log(`🎯 Predicted Priority: ${mlResult.priority.toUpperCase()} (Confidence: ${(mlResult.confidence * 100).toFixed(1)}%)`);
+		console.log(`📊 Confidence Scores: High=${(mlResult.confidenceScores.high * 100).toFixed(0)}% | Medium=${(mlResult.confidenceScores.medium * 100).toFixed(0)}% | Low=${(mlResult.confidenceScores.low * 100).toFixed(0)}%`);
+		console.log(`🔍 Feature Analysis:`);
+		console.log(`   • Urgency Score: ${(parseFloat(mlResult.features.urgencyScore) * 100).toFixed(0)}%`);
+		console.log(`   • Impact Score: ${(parseFloat(mlResult.features.impactScore) * 100).toFixed(0)}%`);
+		console.log(`   • Safety Score: ${(parseFloat(mlResult.features.safetyScore) * 100).toFixed(0)}%`);
+		console.log(`   • TF-IDF Score: ${(parseFloat(mlResult.features.tfIdfScore) * 100).toFixed(0)}%`);
+		
+		console.log('\n--- RULE-BASED ANALYSIS ---');
+		console.log(`📏 Text Analysis Score: ${textScore.toFixed(1)}/100`);
+		console.log(`⏰ Time Factor Score: ${timeScore.toFixed(1)}/30`);
+		
+		console.log('\n--- FINAL DECISION (Ensemble) ---');
+		console.log(`⚖️  Combined Score: ${combinedScore.toFixed(1)}/100 (ML: ${(ML_WEIGHT * 100)}% + Rules: ${(RULE_WEIGHT * 100)}%)`);
+		console.log(`🏆 Final Priority: ${priority.toUpperCase()}`);
+		console.log(`⏱️  SLA Deadline: ${slaHours} hours`);
+		console.log('='.repeat(80) + '\n');
 
-        // 4. Combine all factors with weighted scoring
-        // ML: 40%, Rules: 40%, Weather: 20%
-        const ML_WEIGHT = 0.4;
-        const RULE_WEIGHT = 0.4;
-        const WEATHER_WEIGHT = 0.2;
-
-        const combinedScore = Math.min(
-            100,
-            mlScore * ML_WEIGHT +
-                ruleBasedScore * RULE_WEIGHT +
-                weatherBoost * WEATHER_WEIGHT
-        );
-
-        // 5. Determine final priority based on combined score
-        let priority = "low";
-        if (combinedScore >= 70) {
-            priority = "high";
-        } else if (combinedScore >= 40) {
-            priority = "medium";
-        }
-
-        // 6. Calculate SLA hours based on priority and category
-        const slaHours = calculateSLAHours(
-            combinedScore,
-            complaint.category || "general"
-        );
-
-        logger.info(
-            `Final Priority: ${priority} (score: ${Math.round(
-                combinedScore
-            )}), SLA: ${slaHours} hours`
-        );
-
-        return {
-            priority,
-            slaHours,
-            meta: {
-                priorityScore: Math.round(combinedScore),
-                factors: {
-                    mlScore: Math.round(mlScore),
-                    mlPriority: mlResult.priority,
-                    mlExplanation: mlResult.explanation,
-                    ruleBasedScore: Math.round(ruleBasedScore),
-                    textScore: Math.round(textScore),
-                    timeScore: Math.round(timeScore),
-                    weatherBoost: Math.round(weatherBoost),
-                    weatherExplanation,
-                },
-                weatherConditions: weatherData,
-                explanation: `Priority ${priority} (${Math.round(
-                    combinedScore
-                )}/100): ML predicted ${mlResult.priority} (${Math.round(
-                    mlScore
-                )}), rule-based score ${Math.round(
-                    ruleBasedScore
-                )}, weather boost ${Math.round(
-                    weatherBoost
-                )}. ${weatherExplanation}`,
-            },
-        };
-    } catch (error) {
-        logger.error("Error analyzing priority:", error);
-        // Fallback to simple priority
-        return {
-            priority: "medium",
-            slaHours: 24,
-            meta: {
-                priorityScore: 50,
-                factors: {
-                    error: error.message,
-                },
-            },
-        };
-    }
+		return {
+			score: combinedScore,
+			priority,
+			slaHours,
+			meta: {
+				priorityScore: Math.round(combinedScore),
+				mlPrediction: mlResult.priority,
+				mlConfidence: mlResult.confidence,
+				mlFeatures: mlResult.features,
+				textScore,
+				timeScore,
+				explanation: mlResult.explanation,
+			},
+		};
+	} catch (error) {
+		logger.error("Error in priority analysis:", error);
+		return {
+			score: 50,
+			priority: "medium",
+			slaHours: 24,
+			meta: { error: error.message },
+		};
+	}
 };

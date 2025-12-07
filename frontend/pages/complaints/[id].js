@@ -195,11 +195,35 @@ export default function ComplaintDetails() {
 
 							<div className="mt-4 bg-white rounded-lg p-4 border">
 								<p className="text-gray-500">Priority Score</p>
-								<p className="font-medium">{data.meta?.priorityScore ?? "—"}</p>
-								<p className="text-gray-500 mt-2">Priority Factors</p>
-								<pre className="text-xs bg-gray-100 rounded p-2 mt-1 overflow-auto">
-									{JSON.stringify(data.meta?.priorityFactors ?? {}, null, 2)}
-								</pre>
+								<p className="font-bold text-2xl text-blue-600">{data.meta?.priorityScore ?? "—"}</p>
+								
+								{data.meta?.mlPrediction && (
+									<div className="mt-3 pt-3 border-t">
+										<p className="text-xs font-semibold text-gray-700 mb-2">ML Analysis</p>
+										<div className="space-y-1 text-xs">
+											<div className="flex justify-between">
+												<span className="text-gray-600">ML Prediction:</span>
+												<span className="font-semibold capitalize">{data.meta.mlPrediction}</span>
+											</div>
+											<div className="flex justify-between">
+												<span className="text-gray-600">Confidence:</span>
+												<span className="font-semibold">{(data.meta.mlConfidence * 100).toFixed(1)}%</span>
+											</div>
+											{data.meta.textScore !== undefined && (
+												<div className="flex justify-between">
+													<span className="text-gray-600">Text Score:</span>
+													<span className="font-semibold">{data.meta.textScore}/100</span>
+												</div>
+											)}
+											{data.meta.timeScore !== undefined && (
+												<div className="flex justify-between">
+													<span className="text-gray-600">Time Factor:</span>
+													<span className="font-semibold">{data.meta.timeScore}/30</span>
+												</div>
+											)}
+										</div>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>

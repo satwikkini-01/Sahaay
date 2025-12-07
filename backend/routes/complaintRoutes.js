@@ -5,7 +5,8 @@ import {
 	getUserComplaints,
 	runSLA,
 	getComplaintAnalytics,
-	getComplaintGroups
+	getComplaintGroups,
+	getComplaintHotspots
 } from "../controllers/complaintController.js";
 import { auth } from "../middleware/auth.js";
 import { validate, complaintRules } from "../middleware/validation.js";
@@ -15,6 +16,7 @@ const router = express.Router();
 // Public routes
 router.get("/analytics", getComplaintAnalytics);
 router.get("/groups", getComplaintGroups);
+router.get("/hotspots", getComplaintHotspots);
 
 // Protected routes
 router.post("/", auth, complaintRules, validate, createComplaint);

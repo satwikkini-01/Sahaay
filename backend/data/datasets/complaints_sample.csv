@@ -1,0 +1,11 @@
+complaint_id,category,subcategory,title,description,location_address,ward_number,latitude,longitude,priority,status,created_date,resolved_date,resolution_time_hours
+1,water,supply,No water supply for 3 days,"Our locality has been facing severe water shortage for the past 3 days. Multiple households affected. Need urgent attention.",Koramangala 5th Block Ward 148,148,12.9352,77.6245,high,resolved,2024-01-15,2024-01-16,18
+2,electricity,outage,Power cut in residential area,"Frequent power cuts lasting 4-5 hours daily in our area. Affecting work from home and students.",Indiranagar 2nd Stage Ward 88,88,12.9716,77.6412,medium,resolved,2024-01-16,2024-01-18,42
+3,roads,pothole,Large pothole causing accidents,"Deep pothole on main road near school causing multiple vehicle accidents. Immediate repair required.",Jayanagar 4th Block Ward 172,172,12.9250,77.5937,high,resolved,2024-01-18,2024-01-19,22
+4,water,leakage,Water pipeline leak,"Major water pipeline leakage near bus stop wasting thousands of liters daily.",Malleshwaram Ward 67,67,13.0059,77.5711,medium,in-progress,2024-01-20,,
+5,electricity,streetlight,Street lights not working,"All street lights in our lane have been non-functional for 2 weeks. Safety concern at night.",Whitefield Ward 83,83,12.9698,77.7499,low,pending,2024-01-22,,
+6,roads,flooding,Road waterlogging during rain,"Main road gets completely waterlogged even with light rain. Drainage system blocked.",Banashankari Ward 189,189,12.9250,77.5487,high,in-progress,2024-01-23,,
+7,water,quality,Contaminated water supply,"Water supplied has foul smell and brownish color. Health hazard for residents.",Yelahanka Ward 5,5,13.1007,77.5963,high,resolved,2024-01-25,2024-01-26,20
+8,electricity,transformer,Transformer making noise,"Local transformer making loud buzzing sound and sparking occasionally. Risk of fire.",HSR Layout Ward 174,174,12.9082,77.6476,high,resolved,2024-01-27,2024-01-27,8
+9,roads,repair,Road surface damage,"Road surface completely damaged with multiple potholes. Vehicles getting stuck.",Rajajinagar Ward 24,24,12.9897,77.5544,medium,resolved,2024-01-28,2024-02-01,96
+10,water,pressure,Low water pressure,"Water pressure extremely low in mornings. Unable to fill overhead tanks.",Marathahalli Ward 84,84,12.9591,77.6974,medium,resolved,2024-02-01,2024-02-03,48

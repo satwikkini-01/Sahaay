@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import api from "../../utils/api";
 import {
 	getLocationByPincode,
@@ -9,6 +10,11 @@ import {
 	reverseGeocode,
 } from "../../utils/locationUtils";
 import { withAuth } from "../../utils/withAuth";
+
+// Dynamically import MapLocationPicker to avoid SSR issues with Leaflet
+const MapLocationPicker = dynamic(() => import("../../components/MapLocationPicker"), {
+	ssr: false,
+});
 
 function FileComplaint() {
 	const router = useRouter();
@@ -31,6 +37,7 @@ function FileComplaint() {
 	const [locationError, setLocationError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submissionResult, setSubmissionResult] = useState(null);
+	const [showMapModal, setShowMapModal] = useState(false);
 
 	const categories = {
 		electricity: [
@@ -268,6 +275,20 @@ function FileComplaint() {
 		}
 	};
 
+	const handleMapLocationSelect = (locationData) => {
+		setFormData((prev) => ({
+			...prev,
+			location: {
+				...prev.location,
+				address: locationData.address,
+				city: locationData.city,
+				pincode: locationData.zipcode,
+				coordinates: [locationData.longitude, locationData.latitude],
+			},
+		}));
+		setLocationError("");
+	};
+
 	if (submissionResult) {
 		return (
 			<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
@@ -373,7 +394,8 @@ function FileComplaint() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
+		<>
+			<div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
 			<Head>
 				<title>File Complaint - Sahaay</title>
 				<meta name="description" content="File a new complaint on Sahaay" />
@@ -646,6 +668,26 @@ function FileComplaint() {
 										</svg>
 										Fetch by Pincode
 									</button>
+
+									<button
+										type="button"
+										onClick={() => setShowMapModal(true)}
+										className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50 transition-all flex items-center"
+									>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											className="h-5 w-5 mr-2"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+										>
+											<path
+												fillRule="evenodd"
+												d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z"
+												clipRule="evenodd"
+											/>
+										</svg>
+										Select on Map
+									</button>
 								</div>
 							</div>
 
@@ -744,7 +786,16 @@ function FileComplaint() {
 					</div>
 				</div>
 			</main>
-		</div>
+			</div>
+
+			{/* Map Location Picker Modal - Centered on Mysore, India */}
+			<MapLocationPicker
+				isOpen={showMapModal}
+				onClose={() => setShowMapModal(false)}
+				onLocationSelect={handleMapLocationSelect}
+				initialCenter={[12.2958, 76.6394]}
+			/>
+		</>
 	);
 }
 

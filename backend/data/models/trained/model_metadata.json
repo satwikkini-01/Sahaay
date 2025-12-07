@@ -1,0 +1,17 @@
+{
+  "trainedAt": "2025-12-06T20:12:42.096Z",
+  "trainingSize": 4000,
+  "testSize": 1000,
+  "accuracy": "97.50",
+  "features": "TF-IDF + Naive Bayes",
+  "categories": [
+    "water",
+    "electricity",
+    "roads"
+  ],
+  "priorities": [
+    "low",
+    "medium",
+    "high"
+  ]
+}

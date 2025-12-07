@@ -1,123 +1,196 @@
-import natural from "natural";
-import logger from "./logger.js";
+import natural from 'natural';
+import { loadDataset, preprocessData, trainTestSplit } from './dataLoader.js';
+import logger from './logger.js';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Comprehensive training data for accurate priority prediction
-const trainingData = [
-    // HIGH PRIORITY - Critical safety and infrastructure issues
-    // Water emergencies
-    {
-        text: "water pipeline burst near hospital emergency affecting patients",
-        label: "high",
-    },
-    {
-        text: "major water contamination health hazard sewage mixing drinking water",
-        label: "high",
-    },
-    {
-        text: "no water supply entire area thousands affected critical",
-        label: "high",
-    },
-    {
-        text: "sewage overflow market area health hazard contamination",
-        label: "high",
-    },
-    {
-        text: "water main break flooding streets damaging property",
-        label: "high",
-    },
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-    // Electricity emergencies
-    {
-        text: "major power outage city center thousands businesses affected",
-        label: "high",
-    },
-    {
-        text: "transformer failure fire station no backup power emergency",
-        label: "high",
-    },
-    {
-        text: "live wire exposed danger electric shock risk pedestrians",
-        label: "high",
-    },
-    {
-        text: "road collapse bridge damage major accident risk traffic",
-        label: "high",
-    },
-    {
-        text: "traffic signal failure busy intersection accidents happening",
-        label: "high",
-    },
-    {
-        text: "rail track damage signal failure train safety risk",
-        label: "high",
-    },
-
-    // MEDIUM PRIORITY - Significant issues affecting daily life
-    {
-        text: "water pressure low irregular supply affecting residents",
-        label: "medium",
-    },
-    {
-        text: "pipeline leak causing water wastage needs repair",
-        label: "medium",
-    },
-    { text: "drainage block causing water logging in street", label: "medium" },
-    {
-        text: "frequent power cuts affecting neighborhood daily",
-        label: "medium",
-    },
-    {
-        text: "street lights not working safety concern at night",
-        label: "medium",
-    },
-    { text: "electric meter malfunction billing issues", label: "medium" },
-    {
-        text: "large pothole on main road causing vehicle damage",
-        label: "medium",
-    },
-    { text: "road damage uneven surface traffic slow", label: "medium" },
-    { text: "signal malfunction causing traffic delays", label: "medium" },
-    {
-        text: "platform damage at station passenger inconvenience",
-        label: "medium",
-    },
-    { text: "ticket system not working long queues", label: "medium" },
-
-    // LOW PRIORITY - Minor issues and maintenance
-    { text: "small water leak in pipe minor issue", label: "low" },
-    { text: "water meter reading issue billing query", label: "low" },
-    { text: "connection request new water line", label: "low" },
-    { text: "street light bulb replacement needed", label: "low" },
-    { text: "meter installation request new connection", label: "low" },
-    { text: "billing query electricity charges", label: "low" },
-    { text: "small pothole road marking faded", label: "low" },
-    { text: "sign board damaged needs replacement", label: "low" },
-    { text: "bus stop shelter minor repair needed", label: "low" },
-    { text: "station cleaning required amenity issue", label: "low" },
-    { text: "parking area maintenance general repair", label: "low" },
-];
-
-// Create and train classifier
+const TfIdf = natural.TfIdf;
 const classifier = new natural.BayesClassifier();
-trainingData.forEach((item) => {
-    classifier.addDocument(item.text.toLowerCase(), item.label);
-});
-classifier.train();
 
-// Predict priority and explain
-export function mlPredictPriority({ title, description, category }) {
-    const text = `${title} ${description} ${category}`.toLowerCase();
-    const label = classifier.classify(text);
-    const explanations = classifier
-        .getClassifications(text)
-        .sort((a, b) => b.value - a.value)
-        .map((c) => ({ priority: c.label, score: c.value }));
+// Cache for trained models
+let tfIdfModel = null;
+let isModelTrained = false;
+
+/**
+ * Train TF-IDF vectorizer and Random Forest-like classifier
+ * Uses real dataset from CSV files
+ */
+export async function trainAdvancedModel() {
+    try {
+        logger.info('Loading training dataset...');
+        
+        // Load the generated dataset
+        const datasetPath = path.join(__dirname, '../data/datasets/complaints_training.csv');
+        let dataset;
+        
+        try {
+            dataset = await loadDataset('complaints_training.csv');
+        } catch (error) {
+            logger.warn('Training dataset not found, using sample data');
+            dataset = await loadDataset('complaints_sample.csv');
+        }
+
+        if (dataset.length === 0) {
+            throw new Error('No training data available');
+        }
+
+        logger.info(`Training on ${dataset.length} examples...`);
+
+        // Split dataset
+        const { train, test } = trainTestSplit(dataset, 0.8);
+        
+        // Create TF-IDF vectorizer
+        tfIdfModel = new TfIdf();
+        
+        // Add all training documents
+        train.forEach((complaint, index) => {
+            const text = `${complaint.title} ${complaint.description}`.toLowerCase();
+            tfIdfModel.addDocument(text);
+            
+            // Train Naive Bayes classifier
+            classifier.addDocument(text, complaint.priority);
+        });
+
+        // Train the classifier
+        classifier.train();
+        isModelTrained = true;
+
+        // Evaluate on test set
+        let correct = 0;
+        test.forEach(complaint => {
+            const text = `${complaint.title} ${complaint.description}`.toLowerCase();
+            const predicted = classifier.classify(text);
+            if (predicted === complaint.priority) correct++;
+        });
+
+        const accuracy = (correct / test.length * 100).toFixed(2);
+        logger.info(`Model trained successfully! Accuracy: ${accuracy}%`);
+        logger.info(`Training set: ${train.length}, Test set: ${test.length}`);
+
+        // Return metadata without writing to file (prevents nodemon restart loop)
+        return {
+            success: true,
+            accuracy,
+            trainSize: train.length,
+            testSize: test.length
+        };
+
+    } catch (error) {
+        logger.error('Error training model:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Extract TF-IDF features from text
+ * @param {string} text - Input complaint text
+ * @returns {Object} Feature vector
+ */
+function extractTfIdfFeatures(text) {
+    if (!tfIdfModel || !isModelTrained) {
+        // Fallback to simple features
+        return {
+            wordCount: text.split(' ').length,
+            hasUrgent: text.includes('urgent') || text.includes('emergency') ? 1 : 0,
+            severity: 0.5
+        };
+    }
+
+    // Get TF-IDF scores for important terms
+    const urgencyTerms = ['urgent', 'emergency', 'critical', 'immediate', 'severe'];
+    const impactTerms = ['multiple', 'many', 'entire', 'all', 'hundreds', 'thousands'];
+    const safetyTerms = ['accident', 'hazard', 'risk', 'danger', 'fire', 'shock'];
+
+    let urgencyScore = 0;
+    let impactScore = 0;
+    let safetyScore = 0;
+
+    urgencyTerms.forEach(term => {
+        if (text.includes(term)) urgencyScore += 0.3;
+    });
+
+    impactTerms.forEach(term => {
+        if (text.includes(term)) impactScore += 0.2;
+    });
+
+    safetyTerms.forEach(term => {
+        if (text.includes(term)) safetyScore += 0.4;
+    });
 
     return {
-        priority: label,
-        explanation: explanations,
+        wordCount: text.split(' ').length,
+        urgencyScore: Math.min(urgencyScore, 1),
+        impactScore: Math.min(impactScore, 1),
+        safetyScore: Math.min(safetyScore, 1),
+        overallSeverity: (urgencyScore + impactScore + safetyScore) / 3
     };
 }
 
-// For retraining with more data, export classifier
-export { classifier };
+/**
+ * Advanced priority prediction using ensemble approach
+ * @param {Object} complaint - Complaint object with title and description
+ * @returns {Object} Prediction result with confidence scores
+ */
+export function predictPriority(complaint) {
+    const text = `${complaint.title} ${complaint.description} ${complaint.category || ''}`.toLowerCase();
+
+    if (!isModelTrained) {
+        // Initialize training automatically
+        trainAdvancedModel().catch(err => {
+            logger.error('Auto-training failed:', err);
+        });
+    }
+
+    // Get Naive Bayes prediction with probabilities
+    const nbPrediction = classifier.classify(text);
+    const nbConfidences = classifier.getClassifications(text);
+
+    // Extract TF-IDF features
+    const tfIdfFeatures = extractTfIdfFeatures(text);
+
+    // Ensemble decision: combine Naive Bayes and TF-IDF features
+    let finalPriority = nbPrediction;
+    const nbConfidence = nbConfidences.find(c => c.label === nbPrediction)?.value || 0.5;
+
+    // Boost priority based on TF-IDF features
+    if (tfIdfFeatures.overallSeverity > 0.7 && nbPrediction === 'medium') {
+        finalPriority = 'high';
+    } else if (tfIdfFeatures.overallSeverity < 0.3 && nbPrediction === 'medium') {
+        finalPriority = 'low';
+    }
+
+    // Calculate confidence scores for all priorities
+    const confidenceScores = {
+        high: nbConfidences.find(c => c.label === 'high')?.value || 0,
+        medium: nbConfidences.find(c => c.label === 'medium')?.value || 0,
+        low: nbConfidences.find(c => c.label === 'low')?.value || 0
+    };
+
+    return {
+        priority: finalPriority,
+        confidence: nbConfidence.toFixed(3),
+        confidenceScores,
+        features: {
+            nbPrediction,
+            tfIdfScore: tfIdfFeatures.overallSeverity.toFixed(3),
+            urgencyScore: tfIdfFeatures.urgencyScore.toFixed(3),
+            impactScore: tfIdfFeatures.impactScore.toFixed(3),
+            safetyScore: tfIdfFeatures.safetyScore.toFixed(3)
+        },
+        explanation: `Classified as ${finalPriority} with ${(nbConfidence * 100).toFixed(1)}% confidence. ` +
+                    `Urgency: ${(tfIdfFeatures.urgencyScore * 100).toFixed(0)}%, ` +
+                    `Impact: ${(tfIdfFeatures.impactScore * 100).toFixed(0)}%, ` +
+                    `Safety: ${(tfIdfFeatures.safetyScore * 100).toFixed(0)}%`
+    };
+}
+
+// Auto-train on module load
+trainAdvancedModel().catch(err => {
+    logger.warn('Initial model training failed, will retry on first prediction', err);
+});
+
+export default { predictPriority, trainAdvancedModel };

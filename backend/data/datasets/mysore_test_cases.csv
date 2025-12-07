@@ -1,0 +1,51 @@
+complaint_id,category,subcategory,title,description,location_address,ward_number,latitude,longitude,priority,status,created_date,resolved_date,resolution_time_hours
+1,water,supply,No water supply in Saraswathipuram,"Entire ward facing water shortage for 48 hours. Tank empty, urgent supply needed.",Saraswathipuram Ward 12,12,12.2958,76.6394,high,pending,2024-11-25,,
+2,electricity,outage,Power cut in Vijayanagar,"Transformer failure causing blackout in commercial area. Shops affected.",Vijayanagar Ward 28,28,12.3051,76.6553,high,in-progress,2024-11-24,,
+3,roads,pothole,Pothole near Mysore Palace,"Deep pothole on heritage site road causing tourist vehicle damage.",Palace Road Ward 1,1,12.3051,76.6551,medium,resolved,2024-11-20,2024-11-22,38
+4,water,leakage,Pipeline leak in Jayalakshmipuram,"Major leak wasting thousands of liters near school zone.",Jayalakshmipuram Ward 15,15,12.2863,76.6481,medium,in-progress,2024-11-26,,
+5,electricity,streetlight,Street lights off in Kuvempunagar,"All lights non-functional for 1 week. Women safety concern.",Kuvempunagar Ward 22,22,12.2814,76.6298,medium,pending,2024-11-23,,
+6,roads,flooding,Waterlogging in Hebbal,"Main road flooded even with light rain. Drainage completely blocked.",Hebbal Ward 35,35,12.3373,76.6421,high,pending,2024-11-27,,
+7,water,quality,Contaminated water in Ramakrishnanagar,"Brown colored water with foul smell. Multiple residents ill.",Ramakrishnanagar Ward 8,8,12.2715,76.6421,high,resolved,2024-11-15,2024-11-16,18
+8,electricity,transformer,Sparking transformer in Gokulam,"Transformer making loud noise and sparking. Fire risk.",Gokulam Ward 18,18,12.2849,76.6235,high,resolved,2024-11-22,2024-11-22,6
+9,roads,repair,Road damage in Bogadi,"Road surface completely damaged. Vehicles stuck daily.",Bogadi Ward 42,42,12.2548,76.5982,medium,resolved,2024-11-18,2024-11-24,144
+10,water,pressure,Low pressure in Vontikoppal,"Morning water pressure very low. Cannot fill tanks.",Vontikoppal Ward 5,5,12.3125,76.6458,low,resolved,2024-11-20,2024-11-23,72
+11,water,supply,Urgent water needed in Devanur,"Hospital area without water for emergency services.",Devanur Ward 30,30,12.3298,76.6512,high,in-progress,2024-11-27,,
+12,electricity,billing,Wrong bill in Nazarbad,"Electricity bill 5x normal. Meter reading error suspected.",Nazarbad Ward 11,11,12.3045,76.6498,low,pending,2024-11-25,,
+13,roads,pothole,Multiple potholes in Chamundipuram,"School route damaged. Children safety at risk.",Chamundipuram Ward 55,55,12.2725,76.6821,high,pending,2024-11-26,,
+14,water,supply,Tank overflow in V.V. Mohalla,"Water tank overflowing causing flooding in streets.",V.V. Mohalla Ward 7,7,12.2951,76.6421,medium,resolved,2024-11-21,2024-11-22,24
+15,electricity,outage,Frequent cuts in Alanahalli,"Power cuts 6-8 times daily. Work from home impossible.",Alanahalli Ward 48,48,12.3421,76.6125,medium,in-progress,2024-11-24,,
+16,roads,repair,Bridge crack in Hinkal,"Cracks appearing on bridge structure. Safety concern.",Hinkal Ward 58,58,12.2421,76.5894,high,pending,2024-11-27,,
+17,water,leakage,Sewage overflow in Lakshmipuram,"Manhole overflowing. Health hazard in residential area.",Lakshmipuram Ward 14,14,12.2895,76.6542,high,in-progress,2024-11-26,,
+18,electricity,streetlight,Junction lights off in Bannimantap,"Traffic signal area dark. Accident risk at night.",Bannimantap Ward 20,20,12.2698,76.6298,medium,pending,2024-11-25,,
+19,roads,flooding,Ring Road waterlogged,"Outer Ring Road flooded. Traffic at standstill.",Ring Road Ward 60,60,12.3125,76.5821,high,pending,2024-11-27,,
+20,water,quality,Muddy water in Metagalli,"Water quality very poor. Sediment in taps.",Metagalli Ward 52,52,12.2625,76.6125,medium,resolved,2024-11-19,2024-11-21,48
+21,electricity,transformer,Overloaded transformer in Hootagalli,"Industrial area transformer overheating. Shutdown risk.",Hootagalli Ward 65,65,12.3598,76.6821,high,in-progress,2024-11-26,,
+22,roads,pothole,Pothole cluster in Dattagalli,"15+ potholes on main road. Vehicle damage reported.",Dattagalli Ward 38,38,12.2725,76.5925,medium,pending,2024-11-24,,
+23,water,supply,No water in Siddarthanagar,"New layout without water connection for 3 days.",Siddarthanagar Ward 45,45,12.2421,76.6625,high,pending,2024-11-27,,
+24,electricity,outage,Complete blackout in Rajivnagar,"All of ward without power for 12 hours.",Rajivnagar Ward 33,33,12.3298,76.6725,high,resolved,2024-11-23,2024-11-23,4
+25,roads,repair,Market road damaged in Mandi Mohalla,"Commercial area road in badstate. Business affected.",Mandi Mohalla Ward 3,3,12.3051,76.6548,medium,in-progress,2024-11-25,,
+26,water,pressure,Zero pressure in Tilak Nagar,"No water in overhead tanks. Pump issue suspected.",Tilak Nagar Ward 25,25,12.2951,76.6298,medium,pending,2024-11-26,,
+27,electricity,streetlight,Park lights broken in Yadavagiri,"Children's park completely dark. Safety issue.",Yadavagiri Ward 17,17,12.2825,76.6125,low,pending,2024-11-24,,
+28,roads,pothole,Accident zone in Hunsur Road,"Deep pothole caused 3 accidents this week.",Hunsur Road Ward 62,62,12.3125,76.5625,high,in-progress,2024-11-26,,
+29,water,leakage,Main line burst in Udayagiri,"Major pipeline burst. Water supply to 500 homes cut.",Udayagiri Ward 9,9,12.3125,76.6625,high,in-progress,2024-11-27,,
+30,electricity,billing,Meter malfunction in Srirampura,"Digital meter showing wrong readings.",Srirampura Ward 21,21,12.2725,76.6421,low,pending,2024-11-23,,
+31,roads,flooding,NH275 flooded near Mysore,"National highway waterlogged. Traffic diverted.",NH275 Ward 64,64,12.3421,76.5421,high,resolved,2024-11-20,2024-11-21,22
+32,water,quality,Chlorine smell in Krishnamurthypuram,"Excessive chlorination. Residents complaining of taste.",Krishnamurthypuram Ward 41,41,12.2625,76.6321,low,resolved,2024-11-18,2024-11-20,48
+33,electricity,transformer,Cable damage in Vidyaranyapuram,"Overhead cable damaged by tree. Area without power.",Vidyaranyapuram Ward 36,36,12.3198,76.6225,high,resolved,2024-11-25,2024-11-25,8
+34,roads,repair,Speed breaker needed in Siddartha Layout,"School zone without speed control. Accidents happening.",Siddartha Layout Ward 50,50,12.2421,76.6425,medium,pending,2024-11-26,,
+35,water,supply,Borwell dry in Bogadi,"Community borwell dried up. 200 families affected.",Bogadi Ward 43,43,12.2548,76.5921,high,pending,2024-11-27,,
+36,electricity,outage,Industrial area blackout,"KIADB area without power. Production stopped.",KIADB Ward 68,68,12.3725,76.6925,high,in-progress,2024-11-26,,
+37,roads,pothole,Bus route damaged in Hebbal Extension,"Public transport route in very bad condition.",Hebbal Extension Ward 37,37,12.3421,76.6325,medium,pending,2024-11-24,,
+38,water,leakage,Underground leak in Lakshmikanthanagar,"Invisible leak causing road subsidence.",Lakshmikanthanagar Ward 19,19,12.2898,76.6198,medium,in-progress,2024-11-25,,
+39,electricity,streetlight,Highway lights off,"Mysore-Bangalore highway stretch dark.",Highway Ward 66,66,12.3625,76.6725,medium,pending,2024-11-26,,
+40,roads,flooding,Market area waterlogged,"Devaraja Market flooded. Business losses.",Devaraja Market Ward 2,2,12.3048,76.6525,high,resolved,2024-11-22,2024-11-23,18
+41,water,quality,Iron content high in Vijayanagara 2nd Stage,"Reddish water. Iron pipes corroding.",Vijayanagara 2nd Stage Ward 29,29,12.3125,76.6625,medium,pending,2024-11-25,,
+42,electricity,transformer,New transformer needed in J.P. Nagar,"Existing one undersized. Frequent trips.",J.P. Nagar Ward 53,53,12.2525,76.6225,medium,in-progress,2024-11-24,,
+43,roads,repair,Footpath broken in Saraswathipuram,"Pedestrian walkway dangerous. Elderly at risk.",Saraswathipuram Ward 13,13,12.2925,76.6375,low,pending,2024-11-23,,
+44,water,supply,Emergency water for hospital,"District hospital tank empty. Patient care affected.",District Hospital Ward 4,4,12.3025,76.6475,high,resolved,2024-11-26,2024-11-26,2
+45,electricity,outage,College campus blackout,"University campus without power during exams.",University Ward 31,31,12.3098,76.6598,high,resolved,2024-11-24,2024-11-24,5
+46,roads,pothole,Temple road damage,"Chamundi Hill road potholes. Tourist complaints.",Chamundi Hill Ward 56,56,12.2725,76.6725,medium,resolved,2024-11-19,2024-11-22,72
+47,water,pressure,Apartment complex no water,"100 flats without water. Pump motor failure.",Dattagalli Apartments Ward 39,39,12.2698,76.5898,high,in-progress,2024-11-27,,
+48,electricity,streetlight,Stadium area dark,"Sports complex lights not working. Events cancelled.",Sports Complex Ward 27,27,12.2825,76.6225,medium,pending,2024-11-25,,
+49,roads,flooding,Underpass flooded,"KRS Road underpass completely submerged.",KRS Road Ward 61,61,12.2925,76.5725,high,in-progress,2024-11-27,,
+50,water,leakage,Fire hydrant leak,"Emergency hydrant leaking continuously. Water waste.",Nazarbad Fire Station Ward 10,10,12.3075,76.6521,medium,pending,2024-11-26,,

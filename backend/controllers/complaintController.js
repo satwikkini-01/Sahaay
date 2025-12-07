@@ -40,11 +40,11 @@ export const createComplaint = async (req, res) => {
 			!location.coordinates ||
 			location.coordinates.length !== 2 ||
 			!location.address ||
-			!location.zipcode ||
+			!(location.zipcode || location.pincode) ||
 			!location.city
 		) {
 			return res.status(400).json({
-				error: "Location must include coordinates, address, zipcode, and city",
+				error: "Location must include coordinates, address, zipcode/pincode, and city",
 			});
 		}
 
@@ -77,7 +77,7 @@ export const createComplaint = async (req, res) => {
 				coordinates: location.coordinates,
 				address: location.address,
 				landmark: location.landmark,
-				zipcode: location.zipcode,
+				zipcode: location.zipcode || location.pincode,
 				city: location.city,
 			},
 		};
@@ -86,6 +86,7 @@ export const createComplaint = async (req, res) => {
 		const priorityAnalysis = await analyzePriority({
 			title,
 			description,
+			category,
 			location: complaintData.location,
 		});
 
@@ -94,52 +95,37 @@ export const createComplaint = async (req, res) => {
 		complaintData.slaHours = priorityAnalysis.slaHours;
 		complaintData.meta = {
 			priorityScore: priorityAnalysis.meta.priorityScore,
-			priorityFactors: priorityAnalysis.meta.factors,
+			mlPrediction: priorityAnalysis.meta.mlPrediction,
+			mlConfidence: priorityAnalysis.meta.mlConfidence,
+			textScore: priorityAnalysis.meta.textScore,
+			timeScore: priorityAnalysis.meta.timeScore,
 		};
 
-		// Calculate SLA deadline
-		const slaDeadline = new Date();
-		slaDeadline.setHours(slaDeadline.getHours() + priorityAnalysis.slaHours);
-		complaintData.slaDeadline = slaDeadline;
-
-		// Create and save complaint
+		// Create and save the complaint
 		const complaint = new Complaint(complaintData);
 		await complaint.save();
+		logger.info(`Complaint created: ${complaint._id}`);
 
-		// Find similar complaints and group them
-		const similarGroup = await findSimilarComplaints(complaint);
-
-		if (similarGroup) {
-			// Update all complaints in the group
-			for (const similarComplaint of similarGroup.complaints) {
-				await updateComplaintWithGroup(similarComplaint, similarGroup);
+		// Find similar complaints and update grouping information
+		try {
+			const similarGroup = await findSimilarComplaints(complaint);
+			if (similarGroup) {
+				logger.info(
+					`Found similar group for complaint ${complaint._id}: group ${similarGroup.id} with ${similarGroup.complaints.length} complaints`
+				);
+				await updateComplaintWithGroup(complaint, similarGroup);
 			}
-		} else {
-			// Update this complaint with its own group
-			await updateComplaintWithGroup(complaint, {
-				id: complaint._id.toString(),
-				complaints: [complaint],
-			});
+		} catch (groupError) {
+			logger.error("Error during complaint grouping:", groupError);
+			// Continue even if grouping fails
 		}
 
-		// Return detailed response
+		// Build response
 		const response = {
-			message: "Complaint filed and routed",
-			complaint,
-			analysis: {
-				priority: priorityAnalysis.priority,
-				slaHours: priorityAnalysis.slaHours,
-				slaDeadline: slaDeadline,
-				factors: priorityAnalysis.meta.factors,
-			},
-			groupInfo: similarGroup
-				? {
-						groupId: similarGroup.id,
-						groupSize: similarGroup.complaints.length,
-						isPartOfExistingGroup: similarGroup.complaints.length > 1,
-				  }
-				: null,
+			message: "Complaint created successfully",
+			complaint: complaint,
 		};
+
 		res.status(201).json(response);
 	} catch (err) {
 		res.status(400).json({
@@ -191,73 +177,113 @@ export const runSLA = async (req, res) => {
 
 export const getComplaintAnalytics = async (req, res) => {
 	try {
+		// Get time range from query parameter (default: all time)
+		const { timeRange = 'all' } = req.query;
+		
+		// Calculate date filter based on time range
+		let dateFilter = {};
 		const now = new Date();
-		const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
+		
+		switch (timeRange) {
+			case '1day':
+				dateFilter = { createdAt: { $gte: new Date(now.setDate(now.getDate() - 1)) } };
+				break;
+			case '7days':
+				dateFilter = { createdAt: { $gte: new Date(now.setDate(now.getDate() - 7)) } };
+				break;
+			case '15days':
+				dateFilter = { createdAt: { $gte: new Date(now.setDate(now.getDate() - 15)) } };
+				break;
+			case '30days':
+				dateFilter = { createdAt: { $gte: new Date(now.setDate(now.getDate() - 30)) } };
+				break;
+			case '6months':
+				dateFilter = { createdAt: { $gte: new Date(now.setMonth(now.getMonth() - 6)) } };
+				break;
+			case '1year':
+				dateFilter = { createdAt: { $gte: new Date(now.setFullYear(now.getFullYear() - 1)) } };
+				break;
+			case 'all':
+			default:
+				dateFilter = {}; // No filter - show all time
+				break;
+		}
 
-		// Get analytics from MongoDB
+		// Get analytics from MongoDB with time filter
 		const [
 			priorityDistribution,
+			categoryDistribution,
 			averagePriorityScores,
 			slaBreachStats,
-			categoryTrends,
+			statusDistribution,
 			groupingStats,
 		] = await Promise.all([
 			// Priority distribution
 			Complaint.aggregate([
-				{ $match: { createdAt: { $gte: thirtyDaysAgo } } },
+				{ $match: dateFilter },
 				{
 					$group: {
 						_id: "$priority",
 						count: { $sum: 1 },
 					},
 				},
+				{ $sort: { count: -1 } }
+			]),
+
+			// Category distribution
+			Complaint.aggregate([
+				{ $match: dateFilter },
+				{
+					$group: {
+						_id: "$category",
+						count: { $sum: 1 },
+						avgPriorityScore: { $avg: "$meta.priorityScore" },
+					},
+				},
+				{ $sort: { count: -1 } }
 			]),
 
 			// Average priority scores by category
 			Complaint.aggregate([
-				{ $match: { createdAt: { $gte: thirtyDaysAgo } } },
+				{ $match: dateFilter },
 				{
 					$group: {
 						_id: "$category",
 						avgScore: { $avg: "$meta.priorityScore" },
-						textScore: { $avg: "$meta.priorityFactors.textScore" },
-						timeScore: { $avg: "$meta.priorityFactors.timeScore" },
-						weatherScore: { $avg: "$meta.priorityFactors.weatherScore" },
+						count: { $sum: 1 }
 					},
 				},
 			]),
 
 			// SLA breach statistics
 			Complaint.aggregate([
-				{ $match: { createdAt: { $gte: thirtyDaysAgo } } },
+				{ $match: dateFilter },
 				{
 					$group: {
 						_id: "$category",
 						totalComplaints: { $sum: 1 },
 						slaBreaches: {
-							$sum: { $cond: [{ $eq: ["$meta.slaBreached", true] }, 1, 0] },
+							$sum: { $cond: ["$meta.slaBreached", 1, 0] },
 						},
 					},
 				},
 			]),
 
-			// Category trends over time
+			// Status distribution
 			Complaint.aggregate([
-				{ $match: { createdAt: { $gte: thirtyDaysAgo } } },
+				{ $match: dateFilter },
 				{
 					$group: {
-						_id: {
-							category: "$category",
-							week: { $week: "$createdAt" },
-						},
+						_id: "$status",
 						count: { $sum: 1 },
 					},
 				},
+				{ $sort: { count: -1 } }
 			]),
 
 			// Grouping statistics
 			Complaint.aggregate([
-				{ $match: { createdAt: { $gte: thirtyDaysAgo } } },
+				{ $match: dateFilter },
 				{
 					$group: {
 						_id: null,
@@ -265,36 +291,45 @@ export const getComplaintAnalytics = async (req, res) => {
 						groupedComplaints: {
 							$sum: { $cond: [{ $gt: ["$groupSize", 1] }, 1, 0] },
 						},
-						averageGroupSize: { $avg: "$groupSize" },
+						totalGroups: { $sum: "$groupSize" },
+					},
+				},
+				{
+					$project: {
+						_id: 0,
+						totalComplaints: 1,
+						groupedComplaints: 1,
+						averageGroupSize: {
+							$cond: [
+								{ $gt: ["$groupedComplaints", 0] },
+								{ $divide: ["$totalGroups", "$groupedComplaints"] },
+								0,
+							],
+						},
 					},
 				},
 			]),
 		]);
 
-		// Get analytics from PostgreSQL
-		const pool = getPool();
-		const result = await pool.query(`
-            SELECT 
-                category,
-                COUNT(*) as total_incidents,
-                AVG(CASE WHEN sla_breached THEN 1 ELSE 0 END) as breach_rate,
-                AVG(time_taken) as avg_resolution_time
-            FROM metrics
-            WHERE created_at >= NOW() - INTERVAL '30 days'
-            GROUP BY category
-        `);
-
 		res.json({
+			timeRange,
 			priorityDistribution,
+			categoryDistribution,
 			averagePriorityScores,
 			slaBreachStats,
-			categoryTrends,
-			groupingStats,
-			metricsFromPostgres: result.rows,
-			timeRange: {
-				from: thirtyDaysAgo,
-				to: new Date(),
+			statusDistribution,
+			groupingStats: groupingStats[0] || {
+				totalComplaints: 0,
+				groupedComplaints: 0,
+				averageGroupSize: 0
 			},
+			summary: {
+				totalComplaints: groupingStats[0]?.totalComplaints || 0,
+				categories: categoryDistribution.length,
+				highPriority: priorityDistribution.find(p => p._id === 'high')?.count || 0,
+				mediumPriority: priorityDistribution.find(p => p._id === 'medium')?.count || 0,
+				lowPriority: priorityDistribution.find(p => p._id === 'low')?.count || 0,
+			}
 		});
 	} catch (err) {
 		logger.error("Analytics error:", err);
@@ -302,7 +337,6 @@ export const getComplaintAnalytics = async (req, res) => {
 	}
 };
 
-// New endpoint to get complaint groups
 export const getComplaintGroups = async (req, res) => {
 	try {
 		const { categoryId, limit = 10 } = req.query;
@@ -345,4 +379,88 @@ export const getComplaintGroups = async (req, res) => {
 		logger.error("Error fetching complaint groups:", err);
 		res.status(500).json({ error: err.message });
 	}
+};
+
+// Get complaint hotspots for geospatial mapping with DBSCAN clustering
+export const getComplaintHotspots = async (req, res) => {
+    try {
+        const { category, clustering = 'true' } = req.query;
+        const matchStage = {};
+        
+        if (category) {
+            matchStage.category = category;
+        }
+
+        // Get all complaints with location data and populate citizen information
+        const complaints = await Complaint.find(
+            matchStage
+        )
+        .populate('citizen', 'name email')
+        .select('location priority category subcategory title description status meta.priorityScore createdAt updatedAt citizen')
+        .lean();
+
+        if (complaints.length === 0) {
+            return res.json({
+                type: "FeatureCollection",
+                features: [],
+                clusters: [],
+                heatmap: []
+            });
+        }
+
+        // Transform to GeoJSON format
+        const geoJson = {
+            type: "FeatureCollection",
+            features: complaints.map(c => ({
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: c.location.coordinates
+                },
+                properties: {
+                    id: c._id,
+                    title: c.title,
+                    category: c.category,
+                    priority: c.priority,
+                    priorityScore: c.meta?.priorityScore || 0,
+                    intensity: c.priority === 'high' ? 1 : (c.priority === 'medium' ? 0.6 : 0.3),
+                    createdAt: c.createdAt
+                }
+            }))
+        };
+
+        let clusters = [];
+        let heatmap = [];
+
+        // Perform clustering if requested
+        if (clustering === 'true') {
+            try {
+                const { dbscanClustering, generateHeatmap } = await import('../utils/geospatialClustering.js');
+                
+                // DBSCAN clustering (epsilon = 0.5km, minPts = 3)
+                clusters = dbscanClustering(complaints, 0.5, 3);
+                
+                // Generate heatmap using KDE
+                heatmap = generateHeatmap(complaints, 1.0);
+                
+                logger.info(`Identified ${clusters.length} hotspot clusters`);
+            } catch (clusterError) {
+                logger.error('Clustering error:', clusterError);
+            }
+        }
+
+        res.json({
+            ...geoJson,
+            clusters,
+            heatmap,
+            meta: {
+                total: complaints.length,
+                clusterCount: clusters.length,
+                heatmapPoints: heatmap.length
+            }
+        });
+    } catch (err) {
+        logger.error("Error fetching hotspots:", err);
+        res.status(500).json({ error: err.message });
+    }
 };

@@ -56,11 +56,7 @@ const complaintSchema = new mongoose.Schema(
 			},
 			slaBreached: { type: Boolean, default: false },
 			slaBreachedAt: Date,
-			weatherConditions: {
-				temperature: Number,
-				weather: String,
-				timestamp: Date,
-			},
+			// weatherConditions removed
 		},
 	},
 	{ timestamps: true }

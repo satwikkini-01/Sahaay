@@ -223,11 +223,8 @@ export async function findSimilarComplaints(newComplaint, radiusKm = 5) {
 		// Group similar complaints
 		const groups = await groupSimilarComplaints(
 			[newComplaint, ...nearbyComplaints],
-			radiusKm,
-			similarityThreshold
+			radiusKm
 		);
-
-		// Find the group that contains the new complaint
 		const relevantGroup = groups.find((group) =>
 			group.complaints.some(
 				(c) => c._id.toString() === newComplaint._id.toString()

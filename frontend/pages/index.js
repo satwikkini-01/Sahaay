@@ -1,7 +1,14 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { onAuthStateChanged } from "../utils/authEvent";
+
+// Dynamic import for Map component to avoid SSR issues with Leaflet
+const HotspotMap = dynamic(() => import("../components/HotspotMap"), {
+  ssr: false,
+  loading: () => <div className="h-96 w-full animate-pulse bg-gray-200 rounded-xl"></div>
+});
 
 export default function Home() {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -168,6 +175,24 @@ export default function Home() {
 									</div>
 								</div>
 							))}
+						</div>
+					</div>
+				</section>
+
+				{/* Complaint Hotspots Map */}
+				<section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+					<div className="container mx-auto px-6">
+						<div className="text-center mb-12">
+							<h3 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+								Real-Time Geospatial Intelligence
+							</h3>
+							<p className="text-gray-600 max-w-3xl mx-auto text-lg">
+								Our advanced machine learning system identifies complaint hotspots using <strong>DBSCAN clustering</strong> and 
+								<strong> Kernel Density Estimation</strong>. Visualize high-priority zones and optimize resource allocation in real-time.
+							</p>
+						</div>
+						<div className="max-w-7xl mx-auto">
+							<HotspotMap />
 						</div>
 					</div>
 				</section>
