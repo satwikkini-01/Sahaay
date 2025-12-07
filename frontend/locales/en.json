@@ -1,0 +1,216 @@
+{
+  "common": {
+    "appName": "Sahaay",
+    "tagline": "Your Voice, Our Action",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "home": "Home",
+    "complaints": "Complaints",
+    "fileComplaint": "File Complaint",
+    "myComplaints": "My Complaints",
+    "dashboard": "Dashboard",
+    "analytics": "Analytics",
+    "hotspots": "Hotspots",
+    "groups": "Groups",
+    "mlComparison": "ML Comparison",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "signup": "Sign Up"
+  },
+  "home": {
+    "welcome": "Welcome to Sahaay",
+    "subtitle": "AI-Powered Civic Complaint Management System",
+    "description": "Report civic issues, track progress, and make your city better",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "features": {
+      "title": "Our Features",
+      "aiPriority": {
+        "title": "AI-Powered Priority",
+        "desc": "Machine learning automatically prioritizes urgent complaints"
+      },
+      "realTime": {
+        "title": "Real-Time Tracking",
+        "desc": "Track your complaint status in real-time with live updates"
+      },
+      "geospatial": {
+        "title": "Hotspot Detection",
+        "desc": "Identify problem areas with geospatial clustering"
+      },
+      "multilingual": {
+        "title": "Multilingual Support",
+        "desc": "File complaints in English, Hindi, or Kannada"
+      }
+    },
+    "stats": {
+      "complaints": "Total Complaints",
+      "resolved": "Resolved",
+      "pending": "Pending",
+      "avgTime": "Avg Resolution Time"
+    }
+  },
+  "complaint": {
+    "title": "File a Complaint",
+    "form": {
+      "title": "Complaint Title",
+      "titlePlaceholder": "Brief description of the issue",
+      "description": "Description",
+      "descriptionPlaceholder": "Detailed description of the problem",
+      "category": "Category",
+      "categoryPlaceholder": "Select category",
+      "department": "Department",
+      "departmentPlaceholder": "Select department",
+      "location": "Location",
+      "locationPlaceholder": "Enter address or select on map",
+      "pincode": "Pincode",
+      "pincodePlaceholder": "Enter 6-digit pincode",
+      "getCurrentLocation": "Get Current Location",
+      "selectOnMap": "Select on Map",
+      "fetchByPincode": "Fetch by Pincode",
+      "priority": "Priority",
+      "attachments": "Attachments",
+      "uploadImage": "Upload Image"
+    },
+    "categories": {
+      "water": "Water Supply",
+      "electricity": "Electricity",
+      "roads": "Roads",
+      "waste": "Waste Management",
+      "drainage": "Drainage",
+      "streetlight": "Street Lights",
+      "other": "Other"
+    },
+    "priority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "status": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "rejected": "Rejected",
+      "escalated": "Escalated"
+    },
+    "success": "Complaint filed successfully!",
+    "error": "Failed to file complaint. Please try again.",
+    "details": "Complaint Details",
+    "filedBy": "Filed By",
+    "createdAt": "Created",
+    "updatedAt": "Last Updated",
+    "slaDeadline": "SLA Deadline",
+    "priorityScore": "Priority Score",
+    "mlAnalysis": "ML Analysis",
+    "mlPrediction": "ML Prediction",
+    "confidence": "Confidence",
+    "textScore": "Text Score",
+    "timeFactor": "Time Factor"
+  },
+  "hotspot": {
+    "title": "Complaint Hotspots",
+    "mapView": "Map View",
+    "listView": "List View",
+    "filters": "Filters",
+    "category": "Category",
+    "priority": "Priority",
+    "dateRange": "Date Range",
+    "showClusters": "Show Clusters",
+    "showHeatmap": "Show Heatmap",
+    "clusterInfo": "Cluster Information",
+    "complaintCount": "Complaints",
+    "dominantPriority": "Priority",
+    "timeRange": "Time Range",
+    "keywords": "Keywords",
+    "viewDetails": "View Details"
+  },
+  "groups": {
+    "title": "Complaint Groups",
+    "similarComplaints": "Similar Complaints",
+    "groupedBy": "Grouped By",
+    "viewAll": "View all in group",
+    "collapse": "Collapse",
+    "insights": "Group Insights",
+    "timeRange": "Time Range",
+    "statusDistribution": "Status Distribution",
+    "priorityDistribution": "Priority Distribution",
+    "topLocations": "Top Locations"
+  },
+  "ml": {
+    "comparison": {
+      "title": "ML Model Comparison",
+      "subtitle": "Compare different machine learning algorithms for complaint priority prediction",
+      "runComparison": "Run Comparison",
+      "running": "Running Comparison...",
+      "activeModel": "Currently Active Model",
+      "accuracy": "Accuracy",
+      "trainingTime": "Training Time",
+      "memoryUsage": "Memory Usage",
+      "complexity": "Complexity",
+      "advantages": "Advantages",
+      "limitations": "Limitations",
+      "switchModel": "Switch to This Model",
+      "currentlyActive": "Currently Active",
+      "bestModel": "HIGHEST ACCURACY",
+      "datasetSize": "Dataset Size",
+      "trainSet": "Training Set",
+      "testSet": "Test Set",
+      "modelsTested": "Models Tested",
+      "lastRun": "Last comparison run"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal Information",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "editProfile": "Edit Profile",
+    "changePassword": "Change Password",
+    "preferences": "Preferences",
+    "notifications": "Notifications",
+    "language": "Language"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "email": "Email Address",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginSuccess": "Login successful!",
+    "signupSuccess": "Account created successfully!",
+    "logoutSuccess": "Logged out successfully"
+  },
+  "footer": {
+    "copyright": "© 2025 Sahaay. All rights reserved.",
+    "links": {
+      "about": "About Us",
+      "contact": "Contact",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "help": "Help"
+    }
+  }
+}

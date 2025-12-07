@@ -1,0 +1,216 @@
+{
+  "common": {
+    "appName": "सहाय",
+    "tagline": "आपकी आवाज़, हमारी कार्रवाई",
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफलता",
+    "submit": "जमा करें",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "view": "देखें",
+    "back": "वापस",
+    "next": "अगला",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "close": "बंद करें",
+    "confirm": "पुष्टि करें",
+    "yes": "हां",
+    "no": "नहीं"
+  },
+  "nav": {
+    "home": "होम",
+    "complaints": "शिकायतें",
+    "fileComplaint": "शिकायत दर्ज करें",
+    "myComplaints": "मेरी शिकायतें",
+    "dashboard": "डैशबोर्ड",
+    "analytics": "विश्लेषण",
+    "hotspots": "हॉटस्पॉट",
+    "groups": "समूह",
+    "mlComparison": "एमएल तुलना",
+    "profile": "प्रोफ़ाइल",
+    "logout": "लॉग आउट",
+    "login": "लॉगिन",
+    "signup": "साइन अप"
+  },
+  "home": {
+    "welcome": "सहाय में आपका स्वागत है",
+    "subtitle": "एआई-संचालित नागरिक शिकायत प्रबंधन प्रणाली",
+    "description": "नागरिक मुद्दों की रिपोर्ट करें, प्रगति ट्रैक करें और अपने शहर को बेहतर बनाएं",
+    "getStarted": "शुरू करें",
+    "learnMore": "और जानें",
+    "features": {
+      "title": "हमारी विशेषताएं",
+      "aiPriority": {
+        "title": "एआई-संचालित प्राथमिकता",
+        "desc": "मशीन लर्निंग स्वचालित रूप से जरूरी शिकायतों को प्राथमिकता देती है"
+      },
+      "realTime": {
+        "title": "रीयल-टाइम ट्रैकिंग",
+        "desc": "लाइव अपडेट के साथ अपनी शिकायत की स्थिति रीयल-टाइम में ट्रैक करें"
+      },
+      "geospatial": {
+        "title": "हॉटस्पॉट पहचान",
+        "desc": "भौगोलिक क्लस्टरिंग के साथ समस्या क्षेत्रों की पहचान करें"
+      },
+      "multilingual": {
+        "title": "बहुभाषी समर्थन",
+        "desc": "अंग्रेजी, हिंदी या कन्नड़ में शिकायत दर्ज करें"
+      }
+    },
+    "stats": {
+      "complaints": "कुल शिकायतें",
+      "resolved": "हल किया गया",
+      "pending": "लंबित",
+      "avgTime": "औसत समाधान समय"
+    }
+  },
+  "complaint": {
+    "title": "शिकायत दर्ज करें",
+    "form": {
+      "title": "शिकायत का शीर्षक",
+      "titlePlaceholder": "समस्या का संक्षिप्त विवरण",
+      "description": "विवरण",
+      "descriptionPlaceholder": "समस्या का विस्तृत विवरण",
+      "category": "श्रेणी",
+      "categoryPlaceholder": "श्रेणी चुनें",
+      "department": "विभाग",
+      "departmentPlaceholder": "विभाग चुनें",
+      "location": "स्थान",
+      "locationPlaceholder": "पता दर्ज करें या मानचित्र पर चुनें",
+      "pincode": "पिनकोड",
+      "pincodePlaceholder": "6 अंकों का पिनकोड दर्ज करें",
+      "getCurrentLocation": "वर्तमान स्थान प्राप्त करें",
+      "selectOnMap": "मानचित्र पर चुनें",
+      "fetchByPincode": "पिनकोड द्वारा प्राप्त करें",
+      "priority": "प्राथमिकता",
+      "attachments": "अटैचमेंट",
+      "uploadImage": "छवि अपलोड करें"
+    },
+    "categories": {
+      "water": "जल आपूर्ति",
+      "electricity": "बिजली",
+      "roads": "सड़कें",
+      "waste": "कचरा प्रबंधन",
+      "drainage": "जल निकासी",
+      "streetlight": "स्ट्रीट लाइट",
+      "other": "अन्य"
+    },
+    "priority": {
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "निम्न"
+    },
+    "status": {
+      "pending": "लंबित",
+      "inProgress": "प्रगति में",
+      "resolved": "हल किया गया",
+      "rejected": "अस्वीकृत",
+      "escalated": "आगे बढ़ाया गया"
+    },
+    "success": "शिकायत सफलतापूर्वक दर्ज की गई!",
+    "error": "शिकायत दर्ज करने में विफल। कृपया पुनः प्रयास करें।",
+    "details": "शिकायत विवरण",
+    "filedBy": "द्वारा दर्ज",
+    "createdAt": "बनाया गया",
+    "updatedAt": "अंतिम अपडेट",
+    "slaDeadline": "एसएलए समय सीमा",
+    "priorityScore": "प्राथमिकता स्कोर",
+    "mlAnalysis": "एमएल विश्लेषण",
+    "mlPrediction": "एमएल भविष्यवाणी",
+    "confidence": "विश्वास",
+    "textScore": "पाठ स्कोर",
+    "timeFactor": "समय कारक"
+  },
+  "hotspot": {
+    "title": "शिकायत हॉटस्पॉट",
+    "mapView": "मानचित्र दृश्य",
+    "listView": "सूची दृश्य",
+    "filters": "फ़िल्टर",
+    "category": "श्रेणी",
+    "priority": "प्राथमिकता",
+    "dateRange": "तिथि सीमा",
+    "showClusters": "क्लस्टर दिखाएं",
+    "showHeatmap": "हीटमैप दिखाएं",
+    "clusterInfo": "क्लस्टर जानकारी",
+    "complaintCount": "शिकायतें",
+    "dominantPriority": "प्राथमिकता",
+    "timeRange": "समय सीमा",
+    "keywords": "कीवर्ड",
+    "viewDetails": "विवरण देखें"
+  },
+  "groups": {
+    "title": "शिकायत समूह",
+    "similarComplaints": "समान शिकायतें",
+    "groupedBy": "द्वारा समूहीकृत",
+    "viewAll": "समूह में सभी देखें",
+    "collapse": "संक्षिप्त करें",
+    "insights": "समूह अंतर्दृष्टि",
+    "timeRange": "समय सीमा",
+    "statusDistribution": "स्थिति वितरण",
+    "priorityDistribution": "प्राथमिकता वितरण",
+    "topLocations": "शीर्ष स्थान"
+  },
+  "ml": {
+    "comparison": {
+      "title": "एमएल मॉडल तुलना",
+      "subtitle": "शिकायत प्राथमिकता भविष्यवाणी के लिए विभिन्न मशीन लर्निंग एल्गोरिदम की तुलना करें",
+      "runComparison": "तुलना चलाएं",
+      "running": "तुलना चल रही है...",
+      "activeModel": "वर्तमान सक्रिय मॉडल",
+      "accuracy": "सटीकता",
+      "trainingTime": "प्रशिक्षण समय",
+      "memoryUsage": "मेमोरी उपयोग",
+      "complexity": "जटिलता",
+      "advantages": "लाभ",
+      "limitations": "सीमाएं",
+      "switchModel": "इस मॉडल पर स्विच करें",
+      "currentlyActive": "वर्तमान में सक्रिय",
+      "bestModel": "सर्वोच्च सटीकता",
+      "datasetSize": "डेटासेट आकार",
+      "trainSet": "प्रशिक्षण सेट",
+      "testSet": "परीक्षण सेट",
+      "modelsTested": "परीक्षण किए गए मॉडल",
+      "lastRun": "अंतिम तुलना रन"
+    }
+  },
+  "profile": {
+    "title": "प्रोफ़ाइल",
+    "personalInfo": "व्यक्तिगत जानकारी",
+    "name": "नाम",
+    "email": "ईमेल",
+    "phone": "फोन",
+    "address": "पता",
+    "editProfile": "प्रोफ़ाइल संपादित करें",
+    "changePassword": "पासवर्ड बदलें",
+    "preferences": "प्राथमिकताएं",
+    "notifications": "सूचनाएं",
+    "language": "भाषा"
+  },
+  "auth": {
+    "login": "लॉगिन",
+    "signup": "साइन अप",
+    "logout": "लॉग आउट",
+    "email": "ईमेल पता",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "dontHaveAccount": "खाता नहीं है?",
+    "alreadyHaveAccount": "पहले से खाता है?",
+    "loginSuccess": "लॉगिन सफल!",
+    "signupSuccess": "खाता सफलतापूर्वक बनाया गया!",
+    "logoutSuccess": "सफलतापूर्वक लॉग आउट किया गया"
+  },
+  "footer": {
+    "copyright": "© 2025 सहाय। सर्वाधिकार सुरक्षित।",
+    "links": {
+      "about": "हमारे बारे में",
+      "contact": "संपर्क करें",
+      "privacy": "गोपनीयता नीति",
+      "terms": "सेवा की शर्तें",
+      "help": "सहायता"
+    }
+  }
+}

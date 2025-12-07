@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import api from "../utils/api";
 import { onAuthStateChanged, emitAuthStateChanged } from "../utils/authEvent";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function Navigation() {
 	const router = useRouter();
+	const { t } = useLanguage();
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [citizenData, setCitizenData] = useState(null);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,20 +59,20 @@ export default function Navigation() {
 		}
 	};
 
-	// Navigation items based on auth status
+	// Navigation items based on auth status - NOW WITH TRANSLATIONS
 	const navItems = isLoggedIn
 		? [
-				{ href: "/complaints/new", label: "File Complaint" },
-				{ href: "/complaints", label: "My Complaints" },
-				{ href: "/analytics", label: "Analytics" },
-				{ href: "/profile", label: "Profile" },
-				{ href: "/about", label: "About" },
+				{ href: "/complaints/new", label: t('nav.fileComplaint') },
+				{ href: "/complaints", label: t('nav.myComplaints') },
+				{ href: "/analytics", label: t('nav.analytics') },
+				{ href: "/profile", label: t('nav.profile') },
+				{ href: "/about", label: t('nav.about') },
 		  ]
 		: [
-				{ href: "/login", label: "Login" },
-				{ href: "/register", label: "Register" },
-				{ href: "/analytics", label: "Analytics" },
-				{ href: "/about", label: "About" },
+				{ href: "/login", label: t('auth.login') },
+				{ href: "/register", label: t('auth.signup') },
+				{ href: "/analytics", label: t('nav.analytics') },
+				{ href: "/about", label: t('nav.about') },
 		  ];
 
 	return (
@@ -103,9 +106,10 @@ export default function Navigation() {
 								onClick={handleLogout}
 								className="text-red-600 hover:text-red-700 font-medium transition-colors"
 							>
-								Logout
+								{t('auth.logout')}
 							</button>
 						)}
+						<LanguageSwitcher />
 					</nav>
 
 					{/* Mobile menu button */}
@@ -163,9 +167,12 @@ export default function Navigation() {
 								}}
 								className="text-red-600 hover:text-red-700 font-medium transition-colors text-left"
 							>
-								Logout
+								{t('auth.logout')}
 							</button>
 						)}
+						<div className="pt-2 border-t border-gray-200">
+							<LanguageSwitcher />
+						</div>
 					</nav>
 				</div>
 			</div>
