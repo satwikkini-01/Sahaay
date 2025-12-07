@@ -108,13 +108,6 @@ function MyComplaints() {
 						</Link>
 					</div>
 					
-					{/* Debug Info */}
-					<div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-sm">
-						<h3 className="font-semibold text-yellow-800 mb-2">Debug Information</h3>
-						<p>Token: {debugInfo.token}</p>
-						<p>Citizen ID: {debugInfo.citizenId}</p>
-						<p>Complaints Count: {complaints.length}</p>
-					</div>
 
 					{/* Filters */}
 					<div className="mb-6 flex flex-wrap gap-2">
