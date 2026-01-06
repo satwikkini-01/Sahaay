@@ -88,44 +88,103 @@ export async function trainAdvancedModel() {
 /**
  * Extract TF-IDF features from text
  * @param {string} text - Input complaint text
+ * @param {string} category - Complaint category
  * @returns {Object} Feature vector
  */
-function extractTfIdfFeatures(text) {
-    if (!tfIdfModel || !isModelTrained) {
-        // Fallback to simple features
-        return {
-            wordCount: text.split(' ').length,
-            hasUrgent: text.includes('urgent') || text.includes('emergency') ? 1 : 0,
-            severity: 0.5
-        };
+function extractTfIdfFeatures(text, category = '') {
+    const lowerText = text.toLowerCase();
+    
+    // Enhanced keyword lists
+    const urgencyTerms = {
+        high: ['urgent', 'emergency', 'critical', 'immediate', 'severe', 'asap', 'now', 'help'],
+        medium: ['soon', 'quickly', 'fast', 'needed', 'problem', 'issue'],
+        low: ['please', 'can', 'could', 'would', 'request']
+    };
+    
+    const impactTerms = {
+        high: ['multiple', 'many', 'entire', 'all', 'hundreds', 'thousands', 'whole', 'complete'],
+        medium: ['several', 'few', 'area', 'building', 'block', 'hostel', 'apartment'],
+        low: ['one', 'single', 'my', 'our', 'room']
+    };
+    
+    const safetyTerms = {
+        high: ['accident', 'hazard', 'danger', 'fire', 'shock', 'broken', 'burst', 'leak'],
+        medium: ['unsafe', 'risk', 'damage', 'fault', 'crack', 'problem'],
+        low: ['concern', 'worry', 'issue']
+    };
+
+    // Category-specific scoring
+    const categoryScores = {
+        water: { urgency: 0.4, impact: 0.5, safety: 0.4 },
+        electricity: { urgency: 0.6, impact: 0.4, safety: 0.7 },
+        roads: { urgency: 0.5, impact: 0.6, safety: 0.6 },
+        sanitation: { urgency: 0.5, impact: 0.5, safety: 0.5 },
+        transport: { urgency: 0.3, impact: 0.4, safety: 0.4 },
+        default: { urgency: 0.3, impact: 0.3, safety: 0.3 }
+    };
+
+    // Get base scores from category
+    const baseScores = categoryScores[category] || categoryScores.default;
+
+    // Calculate keyword-based scores
+    let urgencyScore = baseScores.urgency;
+    let impactScore = baseScores.impact;
+    let safetyScore = baseScores.safety;
+
+    // Check urgency terms
+    urgencyTerms.high.forEach(term => {
+        if (lowerText.includes(term)) urgencyScore = Math.min(urgencyScore + 0.25, 1.0);
+    });
+    urgencyTerms.medium.forEach(term => {
+        if (lowerText.includes(term)) urgencyScore = Math.min(urgencyScore + 0.15, 1.0);
+    });
+
+    // Check impact terms
+    impactTerms.high.forEach(term => {
+        if (lowerText.includes(term)) impactScore = Math.min(impactScore + 0.25, 1.0);
+    });
+    impactTerms.medium.forEach(term => {
+        if (lowerText.includes(term)) impactScore = Math.min(impactScore + 0.15, 1.0);
+    });
+
+    // Check safety terms
+    safetyTerms.high.forEach(term => {
+        if (lowerText.includes(term)) safetyScore = Math.min(safetyScore + 0.25, 1.0);
+    });
+    safetyTerms.medium.forEach(term => {
+        if (lowerText.includes(term)) safetyScore = Math.min(safetyScore + 0.15, 1.0);
+    });
+
+    // Text complexity scoring
+    const wordCount = text.split(/\s+/).length;
+    const complexityBonus = Math.min(wordCount / 100, 0.2); // Bonus for detailed complaints
+    
+    urgencyScore = Math.min(urgencyScore + complexityBonus, 1.0);
+    impactScore = Math.min(impactScore + complexityBonus, 1.0);
+
+    // TF-IDF model scoring (if available)
+    let tfIdfScore = 0.3; // Base score
+    if (tfIdfModel && isModelTrained) {
+        // Add document temporarily to get TF-IDF scores
+        const docIndex = tfIdfModel.documents.length;
+        tfIdfModel.addDocument(lowerText);
+        
+        // Get top terms and their scores
+        const terms = tfIdfModel.listTerms(docIndex);
+        if (terms && terms.length > 0) {
+            // Average top 5 TF-IDF scores
+            const topScores = terms.slice(0, 5).map(t => t.tfidf);
+            tfIdfScore = topScores.reduce((a, b) => a + b, 0) / topScores.length;
+            tfIdfScore = Math.min(tfIdfScore / 10, 1.0); // Normalize
+        }
     }
 
-    // Get TF-IDF scores for important terms
-    const urgencyTerms = ['urgent', 'emergency', 'critical', 'immediate', 'severe'];
-    const impactTerms = ['multiple', 'many', 'entire', 'all', 'hundreds', 'thousands'];
-    const safetyTerms = ['accident', 'hazard', 'risk', 'danger', 'fire', 'shock'];
-
-    let urgencyScore = 0;
-    let impactScore = 0;
-    let safetyScore = 0;
-
-    urgencyTerms.forEach(term => {
-        if (text.includes(term)) urgencyScore += 0.3;
-    });
-
-    impactTerms.forEach(term => {
-        if (text.includes(term)) impactScore += 0.2;
-    });
-
-    safetyTerms.forEach(term => {
-        if (text.includes(term)) safetyScore += 0.4;
-    });
-
     return {
-        wordCount: text.split(' ').length,
-        urgencyScore: Math.min(urgencyScore, 1),
-        impactScore: Math.min(impactScore, 1),
-        safetyScore: Math.min(safetyScore, 1),
+        wordCount,
+        urgencyScore: Math.max(0.1, urgencyScore), // Minimum 10%
+        impactScore: Math.max(0.1, impactScore),   // Minimum 10%
+        safetyScore: Math.max(0.1, safetyScore),   // Minimum 10%
+        tfIdfScore: Math.max(0.2, tfIdfScore),     // Minimum 20%
         overallSeverity: (urgencyScore + impactScore + safetyScore) / 3
     };
 }
@@ -136,7 +195,8 @@ function extractTfIdfFeatures(text) {
  * @returns {Object} Prediction result with confidence scores
  */
 export function predictPriority(complaint) {
-    const text = `${complaint.title} ${complaint.description} ${complaint.category || ''}`.toLowerCase();
+    const text = `${complaint.title} ${complaint.description}`.toLowerCase();
+    const category = (complaint.category || '').toLowerCase();
 
     if (!isModelTrained) {
         // Initialize training automatically
@@ -146,11 +206,12 @@ export function predictPriority(complaint) {
     }
 
     // Get Naive Bayes prediction with probabilities
-    const nbPrediction = classifier.classify(text);
-    const nbConfidences = classifier.getClassifications(text);
+    const fullText = `${text} ${category}`;
+    const nbPrediction = classifier.classify(fullText);
+    const nbConfidences = classifier.getClassifications(fullText);
 
-    // Extract TF-IDF features
-    const tfIdfFeatures = extractTfIdfFeatures(text);
+    // Extract TF-IDF features with category context
+    const tfIdfFeatures = extractTfIdfFeatures(text, category);
 
     // Ensemble decision: combine Naive Bayes and TF-IDF features
     let finalPriority = nbPrediction;
@@ -176,7 +237,7 @@ export function predictPriority(complaint) {
         confidenceScores,
         features: {
             nbPrediction,
-            tfIdfScore: tfIdfFeatures.overallSeverity.toFixed(3),
+            tfIdfScore: tfIdfFeatures.tfIdfScore.toFixed(3),
             urgencyScore: tfIdfFeatures.urgencyScore.toFixed(3),
             impactScore: tfIdfFeatures.impactScore.toFixed(3),
             safetyScore: tfIdfFeatures.safetyScore.toFixed(3)

@@ -1,39 +1,39 @@
 {
-  "timestamp": "2025-12-07T07:20:55.262Z",
+  "timestamp": "2026-01-06T17:19:12.194Z",
   "datasetSize": 5000,
   "trainSize": 4000,
   "testSize": 1000,
   "results": [
     {
       "name": "Naive Bayes",
-      "accuracy": "98.20",
-      "trainTime": 461,
+      "accuracy": "96.70",
+      "trainTime": 196,
       "confusionMatrix": {
         "high": {
-          "high": 185,
+          "high": 176,
           "medium": 0,
           "low": 0
         },
         "medium": {
           "high": 0,
-          "medium": 493,
+          "medium": 502,
           "low": 0
         },
         "low": {
           "high": 0,
-          "medium": 18,
-          "low": 304
+          "medium": 33,
+          "low": 289
         }
       },
       "highPrecision": "100.00",
       "highRecall": "100.00",
       "highF1": "100.00",
-      "mediumPrecision": "96.48",
+      "mediumPrecision": "93.83",
       "mediumRecall": "100.00",
-      "mediumF1": "98.21",
+      "mediumF1": "96.82",
       "lowPrecision": "100.00",
-      "lowRecall": "94.41",
-      "lowF1": "97.12",
+      "lowRecall": "89.75",
+      "lowF1": "94.60",
       "pros": [
         "Fast training",
         "Low memory",
@@ -49,34 +49,34 @@
     },
     {
       "name": "Ensemble (ML + Rules)",
-      "accuracy": "98.20",
-      "trainTime": 483,
+      "accuracy": "96.70",
+      "trainTime": 176,
       "confusionMatrix": {
         "high": {
-          "high": 185,
+          "high": 176,
           "medium": 0,
           "low": 0
         },
         "medium": {
           "high": 0,
-          "medium": 493,
+          "medium": 502,
           "low": 0
         },
         "low": {
           "high": 0,
-          "medium": 18,
-          "low": 304
+          "medium": 33,
+          "low": 289
         }
       },
       "highPrecision": "100.00",
       "highRecall": "100.00",
       "highF1": "100.00",
-      "mediumPrecision": "96.48",
+      "mediumPrecision": "93.83",
       "mediumRecall": "100.00",
-      "mediumF1": "98.21",
+      "mediumF1": "96.82",
       "lowPrecision": "100.00",
-      "lowRecall": "94.41",
-      "lowF1": "97.12",
+      "lowRecall": "89.75",
+      "lowF1": "94.60",
       "pros": [
         "Best accuracy",
         "Robust to edge cases",
@@ -92,18 +92,18 @@
     },
     {
       "name": "Logistic Regression",
-      "accuracy": "40.40",
-      "trainTime": 116,
+      "accuracy": "41.50",
+      "trainTime": 44,
       "confusionMatrix": {
         "high": {
-          "high": 41,
-          "medium": 74,
-          "low": 70
+          "high": 51,
+          "medium": 60,
+          "low": 65
         },
         "medium": {
           "high": 0,
-          "medium": 41,
-          "low": 452
+          "medium": 42,
+          "low": 460
         },
         "low": {
           "high": 0,
@@ -112,14 +112,14 @@
         }
       },
       "highPrecision": "100.00",
-      "highRecall": "22.16",
-      "highF1": "36.28",
-      "mediumPrecision": "35.65",
-      "mediumRecall": "8.32",
-      "mediumF1": "13.49",
-      "lowPrecision": "38.15",
+      "highRecall": "28.98",
+      "highF1": "44.93",
+      "mediumPrecision": "41.18",
+      "mediumRecall": "8.37",
+      "mediumF1": "13.91",
+      "lowPrecision": "38.02",
       "lowRecall": "100.00",
-      "lowF1": "55.23",
+      "lowF1": "55.09",
       "pros": [
         "Interpretable coefficients",
         "Probability calibration",
@@ -134,18 +134,18 @@
     },
     {
       "name": "Decision Tree",
-      "accuracy": "40.40",
-      "trainTime": 8,
+      "accuracy": "41.50",
+      "trainTime": 1,
       "confusionMatrix": {
         "high": {
-          "high": 41,
-          "medium": 74,
-          "low": 70
+          "high": 51,
+          "medium": 60,
+          "low": 65
         },
         "medium": {
           "high": 0,
-          "medium": 41,
-          "low": 452
+          "medium": 42,
+          "low": 460
         },
         "low": {
           "high": 0,
@@ -154,14 +154,14 @@
         }
       },
       "highPrecision": "100.00",
-      "highRecall": "22.16",
-      "highF1": "36.28",
-      "mediumPrecision": "35.65",
-      "mediumRecall": "8.32",
-      "mediumF1": "13.49",
-      "lowPrecision": "38.15",
+      "highRecall": "28.98",
+      "highF1": "44.93",
+      "mediumPrecision": "41.18",
+      "mediumRecall": "8.37",
+      "mediumF1": "13.91",
+      "lowPrecision": "38.02",
       "lowRecall": "100.00",
-      "lowF1": "55.23",
+      "lowF1": "55.09",
       "pros": [
         "Highly interpretable",
         "Handles non-linear patterns",

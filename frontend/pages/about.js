@@ -31,24 +31,20 @@ export default function About() {
 
 	const team = [
 		{
-			name: "Alex Johnson",
-			role: "Project Lead",
-			image: "https://i.pravatar.cc/150?img=1",
+			name: "Akshatha Kolli",
+			role: "Team Member",
 		},
 		{
-			name: "Sarah Chen",
-			role: "Technical Architect",
-			image: "https://i.pravatar.cc/150?img=2",
+			name: "Chetan C Hiremath",
+			role: "Team Member",
 		},
 		{
-			name: "Michael Brown",
-			role: "ML Engineer",
-			image: "https://i.pravatar.cc/150?img=3",
+			name: "Satwik Rajendra Kini",
+			role: "Team Member",
 		},
 		{
-			name: "Priya Sharma",
-			role: "UX Designer",
-			image: "https://i.pravatar.cc/150?img=4",
+			name: "Vijay Tejas Walishettar",
+			role: "Team Member",
 		},
 	];
 
@@ -114,8 +110,8 @@ export default function About() {
 						</p>
 						<div className="grid md:grid-cols-3 gap-8 text-center">
 							{[
-								{ value: "50k+", label: "Citizens Served" },
-								{ value: "98%", label: "Resolution Rate" },
+								{ value: "50+", label: "Citizens Served" },
+								{ value: "78%", label: "Resolution Rate" },
 								{ value: "4.8/5", label: "User Rating" },
 							].map((stat, idx) => (
 								<div key={idx}>
@@ -139,13 +135,6 @@ export default function About() {
 					<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
 						{team.map((member, idx) => (
 							<div key={idx} className="text-center">
-								<div className="w-32 h-32 mx-auto mb-4">
-									<img
-										src={member.image}
-										alt={member.name}
-										className="w-full h-full object-cover rounded-full shadow-lg"
-									/>
-								</div>
 								<h4 className="text-xl font-semibold mb-1">{member.name}</h4>
 								<p className="text-gray-600">{member.role}</p>
 							</div>
